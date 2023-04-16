@@ -1,5 +1,9 @@
 # Project Information Visualization
 
+API key:
+
+- https://data.nasdaq.com/sign-up
+
 TODO:
 
 - Landen kiezen
