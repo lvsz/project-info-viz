@@ -2,7 +2,7 @@
 
 ## API key
 
-Available at: https://data.nasdaq.com/sign-up
+Available after creating an account at: <https://data.nasdaq.com/account/profile>
 
 Once you have the API key, store it at `~/.nasdaq/data_link_apikey`, or export it as an environment variable:
 
