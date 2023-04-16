@@ -1,2 +1,0 @@
-pip install Nasdaq-Data-Link
-pip install bokeh

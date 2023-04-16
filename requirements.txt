@@ -1,0 +1,2 @@
+nasdaq-data-link==1.0.4
+bokeh==3.1.0
