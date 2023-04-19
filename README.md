@@ -34,7 +34,22 @@ $ pip install -r requirements.txt
 
 TODO:
 
-- [ ] Landen kiezen
-- [ ] Target user definieren
-- [ ] Visualisaties kiezen
-- [ ] Gantt chart maken
+- Landen:
+  - [ ] Landen kiezen
+  - [ ] Highlights zoeken waar op gefocust kan worden
+  - [ ] Extra data sources zoeken voor correlaties
+- Target user:
+  - [ ] Formeel definieren
+  - [ ] Target platform (website/print/presentatie?)
+  - [ ] Data aanpassen aan target user (?)
+  - [ ] Visualisatie aanpassen aan target user
+  - [ ] Presentatie aanpassen aan target user
+- Visualisaties:
+  - [ ] Visualisaties kiezen
+  - [ ] Prototypes maken
+- Presentatie:
+  - [ ] Inhoud kiezen
+  - [ ] Visuals voorbereiden
+  - [ ] Gantt chart opstellen
+  - [ ] Text opstellen
+  - [ ] Inhoud verdelen
