@@ -6,3 +6,18 @@ body {
     border-radius: 0;
     padding: 10px;
 }
+
+.swiper-container {
+    overflow: hidden;
+    position: relative;
+    --swiper-navigation-color: black;
+    --swiper-navigation-size: 20px;
+}
+
+.swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    font-size: 20px;
+}

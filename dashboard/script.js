@@ -5,6 +5,60 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   var chosenCountry = "None"
 
+  var RAW_INDEX = undefined;
+
+  d3.csv('http://files.ibuildpages.com/raw-index.csv').then(function(data) {
+    RAW_INDEX = data;
+    initDashboard(data);
+  });
+
+  function initDashboard(data) {
+
+    initTimeSlider();
+
+  }
+
+  function initTimeSlider() {
+
+    let dates = [...new Set(RAW_INDEX.map(row => row.date))];
+    console.log(dates);
+
+    let options = { year: 'numeric', month: 'long' };
+    let slides = dates.map(date => `<div class="swiper-slide" data-date="${date}">${new Date(date).toLocaleDateString("en-US", options)}</div>`);
+
+    let swiper = new Swiper('#time-slider', {
+      // Navigation arrows
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+
+      // And if we need scrollbar
+      scrollbar: {
+        el: '.swiper-scrollbar',
+      },
+      direction: 'horizontal',
+      slidesPerView: 1,
+      centeredSlides: true,
+      paginationClickable: true,
+      spaceBetween: 30,
+      mousewheel: {
+        enabled: true,
+      },
+      parallax: true,
+      speed: 600,
+    });
+
+    swiper.appendSlide(slides);
+
+    console.log("Current date: ", dates[0]);
+
+    swiper.on('slideChange', function () {
+      console.log("Current date: ", $(swiper.slides[swiper.activeIndex]).data("date"));
+    });
+
+  }
+
   function changeData(chart) {
     console.log(chart.data.datasets[0].label)
     //change this to lookup the data for the given country and change the graph's labels and data
