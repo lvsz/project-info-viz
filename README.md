@@ -39,17 +39,21 @@ TODO:
   - [ ] Highlights zoeken waar op gefocust kan worden
   - [ ] Extra data sources zoeken voor correlaties
 - Target user:
-  - [ ] Formeel definieren
-  - [ ] Target platform (website/print/presentatie?)
+  - [x] Formeel definieren
+  - [x] Target platform (website/print/presentatie?)
   - [ ] Data aanpassen aan target user (?)
   - [ ] Visualisatie aanpassen aan target user
   - [ ] Presentatie aanpassen aan target user
 - Visualisaties:
   - [ ] Visualisaties kiezen
   - [ ] Prototypes maken
-- Presentatie:
-  - [ ] Inhoud kiezen
-  - [ ] Visuals voorbereiden
-  - [ ] Gantt chart opstellen
-  - [ ] Text opstellen
-  - [ ] Inhoud verdelen
+
+Markets:
+
+- EU
+- USA
+- UK
+- Japan
+- Switzerland
+- Canada
+- Australia
