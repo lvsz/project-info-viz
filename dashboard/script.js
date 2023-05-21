@@ -3,7 +3,44 @@ document.addEventListener("DOMContentLoaded", function(event) {
   const comparisonCahrt = document.getElementById('CPItoBigMacComparisonChart');
   const expenseChart = document.getElementById('expenseChart');
 
-  var chosenCountry = "None"
+  var chosenCountry = "Euro area"
+  var year = 2005
+  var currency = 'EUR';
+  var csv;
+  var thisYearCsv;
+
+
+  d3.csv('http://files.ibuildpages.com/raw-index.csv')
+  .then(test);
+
+  function test(data) {
+    console.log(data)
+    csv = data;
+    thisYearCsv = csv.filter(function(entry) {
+      return entry.date.substring(0, 4) == year;
+      });
+  }
+
+  // console.log(csv)
+
+
+  function newYear(chart){
+    thisYearCsv = csv.filter(function(entry) {
+      return entry.date.substring(0, 4) == year;
+      });
+      chart.update()
+  }
+
+  function lookupBM(country){
+    // console.log(thisYearCsv)
+    var answer = thisYearCsv.filter(function(entry) {
+      return entry.name == country;
+    })
+    // console.log(answer[0])
+    if(typeof answer[0] === 'undefined'){answer = 0}else{answer = Number(answer[0][currency])}
+    return answer
+    
+  }
 
   function changeData(chart) {
     console.log(chart.data.datasets[0].label)
@@ -87,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             label: 'Countries',
             data: countries.map((d) => ({
               feature: d,
-              value: Math.random(),
+              value: lookupBM(d.properties.name)//.then(result => res),//Math.random(),
             })),
           },
         ],
