@@ -3,62 +3,56 @@ document.addEventListener("DOMContentLoaded", function(event) {
   const comparisonCahrt = document.getElementById('CPItoBigMacComparisonChart');
   const expenseChart = document.getElementById('expenseChart');
 
-  var chosenCountry = "Euro area"
-  var year = 2005
-  var currency = 'EUR';
-  var csv;
-  var thisYearCsv;
+  var chosenCountry = "EUZ"
+  var chosenDate;
+  var chosenBaseCurrency = 'EUR';
+  var RAW_INDEX;
 
+  var mapChart;
+  
+  var countries;
+  
 
-  d3.csv('http://files.ibuildpages.com/raw-index.csv')
-  .then(test);
+  Promise.all([
+    d3.csv('http://files.ibuildpages.com/raw-index.csv'),
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json').then((r) => r.json())
+  ])
+  .then(function(values) {
 
-  function test(data) {
-    console.log(data)
-    csv = data;
-    thisYearCsv = csv.filter(function(entry) {
-      return entry.date.substring(0, 4) == year;
-      });
+    // D3
+    RAW_INDEX = values[0];
+
+    // World Atlas
+    countries = ChartGeo.topojson.feature(values[1], values[1].objects.countries).features;
+
+    initDashboard();
+
+  });
+
+  function initDashboard() {
+
+    let dates = [...new Set(RAW_INDEX.map(row => row.date))];
+    chosenDate = dates[0];
+
+    initTimeSlider(dates);
+    mapChart = initMap();
+
   }
 
-  // console.log(csv)
-
-
-  function newYear(chart){
-    thisYearCsv = csv.filter(function(entry) {
-      return entry.date.substring(0, 4) == year;
-      });
-      chart.update()
+  function updateDashboard(){
+    updateMap();
   }
 
   function lookupBM(country){
-    // console.log(thisYearCsv)
-    var answer = thisYearCsv.filter(function(entry) {
-      return entry.name == country;
-    })
-    // console.log(answer[0])
-    if(typeof answer[0] === 'undefined'){answer = 0}else{answer = Number(answer[0][currency])}
+    // console.log(RAW_INDEX);
+    var answer = RAW_INDEX.filter(entry => entry.name == country && entry.date == chosenDate);
+    // console.log(answer);
+    if(typeof answer[0] === 'undefined'){answer = 0}else{answer = Number(answer[0]["dollar_price"])}
     return answer
-    
   }
 
-  var RAW_INDEX = undefined;
 
-  d3.csv('http://files.ibuildpages.com/raw-index.csv').then(function(data) {
-    RAW_INDEX = data;
-    initDashboard(data);
-  });
-
-  function initDashboard(data) {
-
-    initTimeSlider();
-
-  }
-
-  function initTimeSlider() {
-
-    let dates = [...new Set(RAW_INDEX.map(row => row.date))];
-    console.log(dates);
+  function initTimeSlider(dates) {
 
     let options = { year: 'numeric', month: 'long' };
     let slides = dates.map(date => `<div class="swiper-slide" data-date="${date}">${new Date(date).toLocaleDateString("en-US", options)}</div>`);
@@ -92,6 +86,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     swiper.on('slideChange', function () {
       console.log("Current date: ", $(swiper.slides[swiper.activeIndex]).data("date"));
+      chosenDate = $(swiper.slides[swiper.activeIndex]).data("date");
+      updateDashboard();
     });
 
   }
@@ -163,13 +159,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
   }
   });
 
+  function initMap() {
 
-  fetch(' https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')
-  .then((r) => r.json())
-  .then((data) => {
-    const countries = ChartGeo.topojson.feature(data, data.objects.countries).features;
-
-    const chart = new Chart(document.getElementById('canvas').getContext('2d'), {
+    mapChart = new Chart(document.getElementById('canvas').getContext('2d'), {
       type: 'choropleth',
       data: {
         labels: countries.map((d) => d.properties.name),
@@ -178,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             label: 'Countries',
             data: countries.map((d) => ({
               feature: d,
-              value: lookupBM(d.properties.name)//.then(result => res),//Math.random(),
+              value: lookupBM(d.properties.name)
             })),
           },
         ],
@@ -198,18 +190,38 @@ document.addEventListener("DOMContentLoaded", function(event) {
           },
         },
         onClick: (e) =>{
-          const res = chart.getElementsAtEventForMode(
+          const res = mapChart.getElementsAtEventForMode(
             e,
             'nearest',
             { intersect: true },
             true
           );
-          chosenCountry = chart.data.labels[res[0].index]
+          chosenCountry = mapChart.data.labels[res[0].index]
           console.log(chosenCountry);
           changeData(chart2);
         },
       },
     });
-  });
+
+    return mapChart;
+
+  }
+
+
+  function updateMap() {
+
+    console.log("updating map");
+    console.log(mapChart.data.datasets.filter(e => e.label == 'Countries')[0].data);
+
+    mapChart.data.datasets.filter(e => e.label == 'Countries')[0].data = countries.map((d) => ({
+      feature: d,
+      value: lookupBM(d.properties.name)
+    }));
+
+    mapChart.update();
+
+  }
+
+
 
 });
