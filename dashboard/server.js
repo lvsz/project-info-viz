@@ -18,12 +18,19 @@ class Content {
     this.type = type ? type : this.#getType(file);
   }
 }
+
 const dashboardHTML = new Content('./dashboard.html');
 const scriptJS = new Content('./script.js');
 const styleCSS = new Content('./style.css');
+
 const dataDir = '../data/';
 const macRawCSV = new Content(dataDir + 'bigmac/raw-index.csv');
 const macAdjCSV = new Content(dataDir + 'bigmac/adjusted-index.csv');
+
+const cpiDir = dataDir + 'rateinf/';
+const cpiCSVs = new Map();
+fs.readdirSync(cpiDir).forEach(csv =>
+  cpiCSVs.set(csv, new Content(cpiDir + csv)));
 
 const hostname = 'localhost';
 const httpPort = 3000;
@@ -54,10 +61,15 @@ const server = http.createServer((req, res) => {
       ret200(macAdjCSV);
       break;
     default:
-      console.log('404:', query);
-      res.statusCode = 404;
-      res.setHeader('Content-Type', 'text/plain');
-      res.end('404: not found');
+      const queryStr = query[0].substr(1);
+      if (cpiCSVs.has(queryStr)) {
+        ret200(cpiCSVs.get(queryStr));
+      } else {
+        console.log('404:', query);
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('404: not found');
+      }
   }
 });
 
