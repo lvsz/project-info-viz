@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var CPI_labels;
   var CPI_values;
   var correlationList;
+  var WORLD_BANK;
 
   var mapChart;
   var correlationChart;
@@ -23,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   Promise.all([
     d3.csv('http://files.ibuildpages.com/raw-index.csv'),
     d3.csv('https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/CPI_'+ chosenCPI+'.csv'),
-    d3.csv('https://data.nasdaq.com/api/v3/datatables/WB/DATA.csv?api_key=XJ7GbSCgiZsYPCgrn7Qg'),
+    d3.csv('https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/world_bank/WB-DATA.csv'),
     fetch('https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')//placeholder
     .then((r) => r.json())
   ])
@@ -39,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     createCorrelationList()
 
     //expense test
-    console.log(values[2])
+    WORLD_BANK = values[2]
 
     // World Atlas
     countries = ChartGeo.topojson.feature(values[3], values[3].objects.countries).features;
@@ -66,6 +67,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
     updateMap();
   }
 
+
+
+  //mapping between a country on the map and the bm data
  EuroAreaList = ['Austria', 'Belgium', 'Croatia','Republic of Cyprus', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Ireland',
   'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands','Portugal','Slovakia', 'Slovenia', 'Spain']
 
@@ -82,6 +86,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     return answer
   }
 
+
+  //get the labels, a date
   function getLabels(Array2D, decider){
     var resList = []
     for (let i = 0; i < Array2D.length; i++) {
@@ -89,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
     return resList
   }
-
+//get the values, an actual value like currency
   function getValues(Array2D, decider){
     var resList = []
     for (let i = 0; i < Array2D.length; i++) {
@@ -98,18 +104,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
     return resList
   }
 
+
+  //do we have the year in this bm also in the cpi
   function isExistingYear(dateBM){
     return CPI_labels.includes(String(dateBM).substring(0, 4))
   }
 
+  //creates a sublist of the bm with only years of the cpi
   function createCorrelationList(){
     const promptName = mapper(chosenCountry)
-    console.log(promptName)
+    // console.log(promptName)
     var answer = RAW_INDEX.filter(entry => entry.name == promptName && isExistingYear(entry.date));
     if(typeof answer[0] === 'undefined'){answer = []}else{}
     correlationList = answer
   }
 
+  //calculate the correlation between the average cpi in one year and a bm value
   function createCorrelationValuesList(BM, decider){
     var resList = []
     var cpiCtr = 0
@@ -122,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         average += CPI_values[cpiCtr]
       }
       if((cpiCtr < CPI_labels.length && CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) == false){
-        console.log(CPI_labels[cpiCtr])
+        // console.log(CPI_labels[cpiCtr])
       }
       average = average / averageCtr
       resList.push(Number(BM[i][decider] / average))
@@ -164,18 +174,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     swiper.appendSlide(slides);
 
-    console.log("Current date: ", dates[0]);
+    // console.log("Current date: ", dates[0]);
 
     swiper.on('slideChange', function () {
-      console.log("Current date: ", $(swiper.slides[swiper.activeIndex]).data("date"));
+      // console.log("Current date: ", $(swiper.slides[swiper.activeIndex]).data("date"));
       chosenDate = $(swiper.slides[swiper.activeIndex]).data("date");
       updateDashboard();
     });
 
   }
-
-  //https://data.nasdaq.com/api/v3/datatables/WB/DATA.csv?api_key=XJ7GbSCgiZsYPCgrn7Qg
-  //https://data.nasdaq.com/api/v3/datatables/WB/METADATA.csv?api_key=XJ7GbSCgiZsYPCgrn7Qg
+//mapping between a clicked country and a cpi file
   function cpiMapping(){
     if(chosenCountry == 'Argentina'){
       chosenCPI = "ARG"
@@ -343,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             true
           );
           chosenCountry = mapChart.data.labels[res[0].index]
-          console.log(chosenCountry);
+          // console.log(chosenCountry);
           changeData(chart2);
         },
       },
