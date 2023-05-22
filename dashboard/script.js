@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   const comparisonCahrt = document.getElementById('CPItoBigMacComparisonChart');
   const expenseChart = document.getElementById('expenseChart');
 
-  var chosenCountry = "EUZ"
+  var chosenCountry = "Euro area"
   var chosenCPI = "EUR"
   var chosenDate;
   var chosenBaseCurrency = 'EUR';
@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   var mapChart;
   var correlationChart;
+  var BMorCPIChart;
 
   var countries;
  
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   Promise.all([
     d3.csv('http://files.ibuildpages.com/raw-index.csv'),
     d3.csv('https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/CPI_'+ chosenCPI+'.csv'),
+    d3.csv('https://data.nasdaq.com/api/v3/datatables/WB/DATA.csv?api_key=XJ7GbSCgiZsYPCgrn7Qg'),
     fetch('https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')//placeholder
     .then((r) => r.json())
   ])
@@ -30,15 +32,18 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // D3
     RAW_INDEX = values[0];
 
-    // World Atlas
-    countries = ChartGeo.topojson.feature(values[2], values[2].objects.countries).features;
-
     //cpi
     CPI = values[1]
     CPI_labels = getLabels(CPI, 'Date')
     CPI_values = getValues(CPI, 'Value')
     createCorrelationList()
-    console.log(correlationList)
+
+    //expense test
+    console.log(values[2])
+
+    // World Atlas
+    countries = ChartGeo.topojson.feature(values[3], values[3].objects.countries).features;
+
 
     initDashboard();
 
@@ -53,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     initTimeSlider(dates);
     mapChart = initMap();
     correlationChart = initCorrelationChart();
+    BMorCPIChart = initIndividualChart();
 
   }
 
@@ -97,7 +103,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
   }
 
   function createCorrelationList(){
-    var answer = RAW_INDEX.filter(entry => entry.iso_a3 == chosenCountry && isExistingYear(entry.date));
+    const promptName = mapper(chosenCountry)
+    console.log(promptName)
+    var answer = RAW_INDEX.filter(entry => entry.name == promptName && isExistingYear(entry.date));
     if(typeof answer[0] === 'undefined'){answer = []}else{}
     correlationList = answer
   }
@@ -166,32 +174,83 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   }
 
-  function changeData(chart) {
-    console.log(chart.data.datasets[0].label)
+  //https://data.nasdaq.com/api/v3/datatables/WB/DATA.csv?api_key=XJ7GbSCgiZsYPCgrn7Qg
+  //https://data.nasdaq.com/api/v3/datatables/WB/METADATA.csv?api_key=XJ7GbSCgiZsYPCgrn7Qg
+  function cpiMapping(){
+    if(chosenCountry == 'Argentina'){
+      chosenCPI = "ARG"
+    }else if(chosenCountry == 'Australia'){
+      chosenCPI = "AUS"
+    }else if(chosenCountry == 'Canada'){
+      chosenCPI = "CAN"
+    }else if(EuroAreaList.includes(chosenCountry)){
+      chosenCPI = "EUR"
+    }else if(chosenCountry == 'Britain'){
+      chosenCPI = "GBR"
+    }else if(chosenCountry == 'Japan'){
+      chosenCPI = "JPN"
+    }else if(chosenCountry == 'New Zealand'){
+      chosenCPI = "NZL"
+    }else if(chosenCountry == 'Russia'){
+      chosenCPI = "RUS"
+    }else if(chosenCountry == 'United States of America'){
+      chosenCPI = "USA"
+    }else if(chosenCountry == 'Czech Republic'){
+      chosenCPI = "CHE"
+    }else {
+      chosenCPI = 'CHE' // needs to change so to None
+    } 
+  }
+
+  function changeData() {
+    cpiMapping()
+    Promise.all([
+      d3.csv('https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/CPI_'+ chosenCPI+'.csv')
+    ])
+    .then(function(values) {
+      //cpi
+      CPI = values[0]
+      CPI_labels = getLabels(CPI, 'Date')
+      CPI_values = getValues(CPI, 'Value')
+      createCorrelationList()
+      
+      updateCorrelationChart();
+      updateBMorCPIChart();
+    });
     //change this to lookup the data for the given country and change the graph's labels and data
     // chart.data.labels =labels for the chosenCountry
     // chart.data.datasets[0]. data =labels for the chosenCountry
-    chart.update();
 }
-
-  new Chart(ctx, {
-  type: 'bar',
-  data: {
-      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-      datasets: [{
-      label: '# of Votes',
-      data: [12, 19, 3, 5, 2, 3],
-      borderWidth: 1
-      }]
-  },
-  options: {
-      scales: {
-      y: {
-          beginAtZero: true
-      }
-      }
+  function initIndividualChart(){
+    return new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: CPI_labels,
+        datasets: [{
+        label: '# of Votes',
+        data: CPI_values,
+        borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+        y: {
+            beginAtZero: true
+        }
+        }
+    }
+    });
   }
-  });
+
+  function updateBMorCPIChart() {
+
+    console.log("updating BMorCPIChart");
+
+    BMorCPIChart.data.labels = CPI_labels;
+    BMorCPIChart.data.datasets.data = CPI_values;
+    BMorCPIChart.update();
+
+  }
 
   const chart2 = new Chart(expenseChart, {
     type: 'bar',
@@ -220,7 +279,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         labels: getLabels(correlationList, 'date'),
         datasets: [{
         label: 'correlation between CPI and Big mac index',
-        data: createCorrelationValuesList(correlationList, 'local_price'), //getValues(correlationList, 'local_price'),
+        data: createCorrelationValuesList(correlationList, 'dollar_price'), //getValues(correlationList, 'local_price'),
         borderWidth: 1
         }]
     },
@@ -232,6 +291,18 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
     }
     });
+  }
+  
+  function updateCorrelationChart() {
+
+    console.log("updating correlation chart");
+
+    correlationChart.data.labels = getLabels(correlationList, 'date');
+    correlationChart.data.datasets.data = createCorrelationValuesList(correlationList, 'dollar_price');
+
+
+    correlationChart.update();
+
   }
 
   function initMap() {
