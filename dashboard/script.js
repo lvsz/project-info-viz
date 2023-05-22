@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   const expenseChart = document.getElementById('expenseChart');
 
   var chosenCountry = "Euro area"
+  var comparisonCountry = 'United States'
   var chosenCPI = "EUR"
   var chosenDate;
   var chosenBaseCurrency = 'EUR';
@@ -14,8 +15,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var correlationList;
   var WORLD_BANK;
   var expenseList;
+  var resDates = [];
+  var resValues = [];
 
   var mapChart;
+  var currencyValueChart;
   var correlationChart;
   var BMorCPIChart;
   var ExpenseChart;
@@ -34,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     // D3
     RAW_INDEX = values[0];
+    initializeTheCurrencyComparison();
 
     //cpi
     CPI = values[1]
@@ -54,6 +59,36 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   });
 
+  function initializeTheCurrencyComparison(){
+    const promptName = mapper(chosenCountry)
+    var answer1 = RAW_INDEX.filter(entry => entry.name == promptName);
+    var answer2 = RAW_INDEX.filter(entry => entry.name == comparisonCountry);
+    var curCountryCTR = 0;
+    var comparisonCountryCTR = 0;
+    resDates = [];
+    resValues = [];
+    if((typeof answer1 === 'undefined') == false){
+      console.log(answer1.length)
+      while(curCountryCTR < answer1.length && comparisonCountryCTR < answer2.length){
+        var year1 = Number(String(answer1[curCountryCTR]['date']).substring(0,4))
+        var year2 = Number(String(answer2[comparisonCountryCTR]['date']).substring(0,4))
+        var value1 = Number(answer1[curCountryCTR]["dollar_price"])
+        var value2 = Number(answer2[comparisonCountryCTR]["dollar_price"])
+        if(year1 == year2){
+          resDates.push(year1)
+          resValues.push(((value2-value1)/value2)*100)
+          curCountryCTR += 1
+          comparisonCountryCTR += 1
+        }else if(year1 < year2){
+          curCountryCTR += 1
+        }else if(year1 > year2){
+          comparisonCountryCTR += 1
+        }
+      }
+    }
+
+  }
+
 
   function initDashboard() {
 
@@ -62,6 +97,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     initTimeSlider(dates);
     mapChart = initMap();
+    currencyValueChart = initCurrencyValueChart();
     correlationChart = initCorrelationChart();
     BMorCPIChart = initIndividualChart();
     ExpenseChart = initExpenseChart();
@@ -97,6 +133,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
       return 'Central African Republic'
     }else if(country == 'South Korea' || country == 'North Korea' ){
       return 'Korea, Rep.'
+    }else if(country == 'Egypt'){
+      return 'Egypt, Arab Rep.'
+    }else if(country == 'Venezuela'){
+      return 'Venezuela, RB'
     }else{
       return country
     }
@@ -141,7 +181,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // console.log(promptName)
     var answer = RAW_INDEX.filter(entry => entry.name == promptName && isExistingYear(entry.date));
     if(typeof answer[0] === 'undefined'){answer = []}else{}
-    console.log(answer)
     correlationList = answer
   }
 
@@ -151,8 +190,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var cpiCtr = 0
     var average = 0
     var averageCtr = 0 
-    console.log(CPI_labels)
     for (let i = 0; i < BM.length; i++) {
+      while(Number(CPI_labels[cpiCtr]) < Number(String(BM[i]['date']).substring(0, 4))){
+        cpiCtr += 1
+      }
       while(cpiCtr < CPI_labels.length && CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) {
         averageCtr += 1
         cpiCtr += 1
@@ -160,7 +201,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
       }
       average = average / averageCtr
       resList.push(Number(BM[i][decider] / average))
-      console.log(cpiCtr)
       if(i+1 < BM.length){
         if(String(BM[i]['date']).substring(0, 4) == String(BM[i+1]['date']).substring(0, 4)){
           cpiCtr -= averageCtr
@@ -255,11 +295,53 @@ document.addEventListener("DOMContentLoaded", function(event) {
       updateCorrelationChart();
       updateBMorCPIChart();
       updateExpenseChart();
+      updateCurrencyValueChart();
     });
     //change this to lookup the data for the given country and change the graph's labels and data
     // chart.data.labels =labels for the chosenCountry
     // chart.data.datasets[0]. data =labels for the chosenCountry
 }
+
+
+function initCurrencyValueChart(){
+  return new Chart(CurrencyValueChart, {
+  type: 'bar',
+  data: {
+      labels: resDates,
+      datasets: [{
+      label: 'CPI for chosen country',
+      data: resValues,
+      borderWidth: 1
+      }]
+  },
+  options: {
+    indexAxis: 'y',
+      scales: {
+      y: {
+          beginAtZero: true
+      }
+      }
+  }
+  });
+}
+
+function updateCurrencyValueChart() {
+
+  console.log("updating BMorCPIChart");
+  initializeTheCurrencyComparison();
+  currencyValueChart.data.labels = resDates
+  currencyValueChart.data.datasets[0].data = resValues
+  currencyValueChart.update();
+
+}
+
+
+
+
+
+
+
+
   function initIndividualChart(){
     return new Chart(ctx, {
     type: 'bar',
