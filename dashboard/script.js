@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
   const getCpiCSV = (req) => `${cpiBaseURL}CPI_${req}.csv`;
 
   var chosenCountry = 'Euro area';
-  var comparisonCountry = 'United States';
+  var comparisonCountry = 'USA';
+  var altComparisonCountry = 'EUZ';
   var chosenCPI = 'EUR';
   var chosenDate;
   var chosenBaseCurrency = 'EUR';
@@ -70,8 +71,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function initializeTheCurrencyComparison() {
     const promptName = bigMacMapper(chosenCountry);
-    var answer1 = RAW_INDEX.filter((entry) => entry.name == promptName);
-    var answer2 = RAW_INDEX.filter((entry) => entry.name == comparisonCountry);
+    let cmp = promptName == comparisonCountry ? altComparisonCountry :
+                                                comparisonCountry;
+    let answer1 = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName);
+    let answer2 = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
     var curCountryCTR = 0;
     var comparisonCountryCTR = 0;
     resDates = [];
@@ -127,9 +130,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
   ];
 
   const bigMacMap = {
-    'United States of America': 'United States',
-    'United Kingdom': 'Britain',
-    __proto__: Object.fromEntries(euroZone.map((x) => [x, 'Euro area'])),
+    __proto__: iso_a3,
+    ...Object.fromEntries(euroZone.map((x) => [x, 'EUZ'])),
   };
 
   const cpiMap = {
@@ -142,10 +144,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
     'Russia': 'RUS',
     'United States of America': 'USA',
     'Switzerland': 'CHE',
-    __proto__: Object.fromEntries(euroZone.map((x) => [x, 'EUR'])),
+    ...Object.fromEntries(euroZone.map((x) => [x, 'EUR'])),
   };
 
   const worldBankMap = {
+    'United States of America': 'United States',
+    'United Kingdom': 'Britain',
     'Dem. Rep. Congo': 'Congo, Dem. Rep.',
     'Central African Rep.': 'Central African Republic',
     'North Korea': 'Korea, Rep.',
@@ -153,12 +157,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
     'Egypt': 'Egypt, Arab Rep.',
     'Venezuela': 'Venezuela, RB',
     'Russia': 'Russian Federation',
-    __proto__: bigMacMap,
   };
 
-
   function bigMacMapper(country) {
-    return bigMacMap[country] || country;
+    return bigMacMap[country] || null;
   }
 
   function worldBankMapper(country) {
@@ -169,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     // console.log(RAW_INDEX);
     const promptName = bigMacMapper(country);
     var answer = RAW_INDEX.filter(
-        (entry) => entry.name == promptName && entry.date == chosenDate);
+        (entry) => entry.iso_a3 == promptName && entry.date == chosenDate);
     // console.log(answer);
     if (typeof answer[0] === 'undefined') {
       answer = null;
@@ -206,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     const promptName = bigMacMapper(chosenCountry);
     // console.log(promptName)
     var answer = RAW_INDEX.filter(
-        (entry) => entry.name == promptName && isExistingYear(entry.date));
+        (entry) => entry.iso_a3 == promptName && isExistingYear(entry.date));
     if (typeof answer[0] === 'undefined') {
       answer = [];
     } else {
@@ -465,3 +467,65 @@ document.addEventListener('DOMContentLoaded', function(event) {
     mapChart.update();
   }
 });
+
+const iso_a3 = {
+  'Argentina': 'ARG',
+  'Australia': 'AUS',
+  'Azerbaijan': 'AZE',
+  'Bahrain': 'BHR',
+  'Brazil': 'BRA',
+  'Britain': 'GBR',
+  'Canada': 'CAN',
+  'Chile': 'CHL',
+  'China': 'CHN',
+  'Colombia': 'COL',
+  'Costa Rica': 'CRI',
+  'Croatia': 'HRV',
+  'Czech Republic': 'CZE',
+  'Denmark': 'DNK',
+  'Egypt': 'EGY',
+  'Euro area': 'EUZ',
+  'Guatemala': 'GTM',
+  'Honduras': 'HND',
+  'Hong Kong': 'HKG',
+  'Hungary': 'HUN',
+  'India': 'IND',
+  'Indonesia': 'IDN',
+  'Israel': 'ISR',
+  'Japan': 'JPN',
+  'Jordan': 'JOR',
+  'Kuwait': 'KWT',
+  'Lebanon': 'LBN',
+  'Malaysia': 'MYS',
+  'Mexico': 'MEX',
+  'Moldova': 'MDA',
+  'New Zealand': 'NZL',
+  'Nicaragua': 'NIC',
+  'Norway': 'NOR',
+  'Oman': 'OMN',
+  'Pakistan': 'PAK',
+  'Peru': 'PER',
+  'Philippines': 'PHL',
+  'Poland': 'POL',
+  'Qatar': 'QAT',
+  'Romania': 'ROU',
+  'Russia': 'RUS',
+  'Saudi Arabia': 'SAU',
+  'Singapore': 'SGP',
+  'South Africa': 'ZAF',
+  'South Korea': 'KOR',
+  'Sri Lanka': 'LKA',
+  'Sweden': 'SWE',
+  'Switzerland': 'CHE',
+  'Taiwan': 'TWN',
+  'Thailand': 'THA',
+  'Turkey': 'TUR',
+  'Ukraine': 'UKR',
+  'United Arab Emirates': 'ARE',
+  'United Kingdom': 'GBR',
+  'United States': 'USA',
+  'United States of America': 'USA',
+  'Uruguay': 'URY',
+  'Venezuela': 'VEN',
+  'Vietnam': 'VNM'
+}
