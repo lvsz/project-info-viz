@@ -10,7 +10,7 @@ class Content {
   };
   #getType(file) {
     const suffix = file.substr(file.lastIndexOf('.') + 1);
-    const type = this.#mimeTypes.suffix;
+    const type = this.#mimeTypes[suffix];
     return type ? type : `text/${suffix}`;
   }
   constructor(file, type) {
