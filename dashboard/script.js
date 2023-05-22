@@ -4,18 +4,26 @@ document.addEventListener("DOMContentLoaded", function(event) {
   const expenseChart = document.getElementById('expenseChart');
 
   var chosenCountry = "EUZ"
+  var chosenCPI = "EUR"
   var chosenDate;
   var chosenBaseCurrency = 'EUR';
   var RAW_INDEX;
+  var CPI;
+  var CPI_labels;
+  var CPI_values;
+  var correlationList;
 
   var mapChart;
-  
-  var countries;
-  
+  var correlationChart;
 
+  var countries;
+ 
+  
   Promise.all([
     d3.csv('http://files.ibuildpages.com/raw-index.csv'),
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json').then((r) => r.json())
+    d3.csv('https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/CPI_'+ chosenCPI+'.csv'),
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')//placeholder
+    .then((r) => r.json())
   ])
   .then(function(values) {
 
@@ -23,11 +31,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
     RAW_INDEX = values[0];
 
     // World Atlas
-    countries = ChartGeo.topojson.feature(values[1], values[1].objects.countries).features;
+    countries = ChartGeo.topojson.feature(values[2], values[2].objects.countries).features;
+
+    //cpi
+    CPI = values[1]
+    CPI_labels = getLabels(CPI, 'Date')
+    CPI_values = getValues(CPI, 'Value')
+    createCorrelationList()
+    console.log(correlationList)
 
     initDashboard();
 
   });
+
 
   function initDashboard() {
 
@@ -36,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     initTimeSlider(dates);
     mapChart = initMap();
+    correlationChart = initCorrelationChart();
 
   }
 
@@ -43,13 +60,70 @@ document.addEventListener("DOMContentLoaded", function(event) {
     updateMap();
   }
 
+ EuroAreaList = ['Austria', 'Belgium', 'Croatia','Republic of Cyprus', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Ireland',
+  'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands','Portugal','Slovakia', 'Slovenia', 'Spain']
+
+  function mapper(country){
+    if(country == 'United States of America'){return'United States'}else if(EuroAreaList.includes(country)){return'Euro area'}else if(country == 'United Kingdom'){return 'Britain'}else{return country}
+  }
+ 
   function lookupBM(country){
     // console.log(RAW_INDEX);
-    var answer = RAW_INDEX.filter(entry => entry.name == country && entry.date == chosenDate);
+    const promptName = mapper(country)
+    var answer = RAW_INDEX.filter(entry => entry.name == promptName && entry.date == chosenDate);
     // console.log(answer);
-    if(typeof answer[0] === 'undefined'){answer = 0}else{answer = Number(answer[0]["dollar_price"])}
+    if(typeof answer[0] === 'undefined'){answer = -1}else{answer = Number(answer[0]["dollar_price"])}
     return answer
   }
+
+  function getLabels(Array2D, decider){
+    var resList = []
+    for (let i = 0; i < Array2D.length; i++) {
+      resList.push(String(Array2D[i][decider]).substring(0, 4));
+    }
+    return resList
+  }
+
+  function getValues(Array2D, decider){
+    var resList = []
+    for (let i = 0; i < Array2D.length; i++) {
+      resList.push(Number(Array2D[i][decider]));
+    }
+    return resList
+  }
+
+  function isExistingYear(dateBM){
+    return CPI_labels.includes(String(dateBM).substring(0, 4))
+  }
+
+  function createCorrelationList(){
+    var answer = RAW_INDEX.filter(entry => entry.iso_a3 == chosenCountry && isExistingYear(entry.date));
+    if(typeof answer[0] === 'undefined'){answer = []}else{}
+    correlationList = answer
+  }
+
+  function createCorrelationValuesList(BM, decider){
+    var resList = []
+    var cpiCtr = 0
+    var average = 0
+    var averageCtr = 0 
+    for (let i = 0; i < BM.length; i++) {
+      while(cpiCtr < CPI_labels.length && CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) {
+        averageCtr += 1
+        cpiCtr += 1
+        average += CPI_values[cpiCtr]
+      }
+      if((cpiCtr < CPI_labels.length && CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) == false){
+        console.log(CPI_labels[cpiCtr])
+      }
+      average = average / averageCtr
+      resList.push(Number(BM[i][decider] / average))
+      averageCtr = 0
+      average = 0
+    }
+    return resList
+  }
+
 
 
   function initTimeSlider(dates) {
@@ -139,25 +213,26 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
 
 
-
-  new Chart(comparisonCahrt, {
-  type: 'line',
-  data: {
-      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-      datasets: [{
-      label: 'correlation between CPI and Big mac index',
-      data: [12, 19, 3, 5, 2, 3],
-      borderWidth: 1
-      }]
-  },
-  options: {
-      scales: {
-      y: {
-          beginAtZero: true
-      }
-      }
+  function initCorrelationChart(){  
+    return new Chart(comparisonCahrt, {
+    type: 'line',
+    data: {
+        labels: getLabels(correlationList, 'date'),
+        datasets: [{
+        label: 'correlation between CPI and Big mac index',
+        data: createCorrelationValuesList(correlationList, 'local_price'), //getValues(correlationList, 'local_price'),
+        borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+        y: {
+            beginAtZero: true
+        }
+        }
+    }
+    });
   }
-  });
 
   function initMap() {
 
