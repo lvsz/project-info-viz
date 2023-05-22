@@ -13,10 +13,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var CPI_values;
   var correlationList;
   var WORLD_BANK;
+  var expenseList;
 
   var mapChart;
   var correlationChart;
   var BMorCPIChart;
+  var ExpenseChart;
 
   var countries;
  
@@ -41,6 +43,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     //expense test
     WORLD_BANK = values[2]
+    const promptName = expenseMapper(chosenCountry)
+    expenseList = WORLD_BANK.filter(entry => entry.country_name == promptName);
 
     // World Atlas
     countries = ChartGeo.topojson.feature(values[3], values[3].objects.countries).features;
@@ -60,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     mapChart = initMap();
     correlationChart = initCorrelationChart();
     BMorCPIChart = initIndividualChart();
+    ExpenseChart = initExpenseChart();
 
   }
 
@@ -75,6 +80,26 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   function mapper(country){
     if(country == 'United States of America'){return'United States'}else if(EuroAreaList.includes(country)){return'Euro area'}else if(country == 'United Kingdom'){return 'Britain'}else{return country}
+  }
+  
+  function expenseMapper(country){
+    if(country == 'United States of America'){
+      return'United States'
+    }else if(EuroAreaList.includes(country)){
+      return'Euro area'
+    }else if(country == 'United Kingdom'){
+      return 'Britain'
+    }else if(country == 'Russia'){
+      return 'Russian Federation'
+    }else if(country == 'Dem. Rep. Congo'){
+      return 'Congo, Dem. Rep.'
+    }else if(country == 'Central African Rep.'){
+      return 'Central African Republic'
+    }else if(country == 'South Korea' || country == 'North Korea' ){
+      return 'Korea, Rep.'
+    }else{
+      return country
+    }
   }
  
   function lookupBM(country){
@@ -116,6 +141,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // console.log(promptName)
     var answer = RAW_INDEX.filter(entry => entry.name == promptName && isExistingYear(entry.date));
     if(typeof answer[0] === 'undefined'){answer = []}else{}
+    console.log(answer)
     correlationList = answer
   }
 
@@ -125,17 +151,21 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var cpiCtr = 0
     var average = 0
     var averageCtr = 0 
+    console.log(CPI_labels)
     for (let i = 0; i < BM.length; i++) {
       while(cpiCtr < CPI_labels.length && CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) {
         averageCtr += 1
         cpiCtr += 1
         average += CPI_values[cpiCtr]
       }
-      if((cpiCtr < CPI_labels.length && CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) == false){
-        // console.log(CPI_labels[cpiCtr])
-      }
       average = average / averageCtr
       resList.push(Number(BM[i][decider] / average))
+      console.log(cpiCtr)
+      if(i+1 < BM.length){
+        if(String(BM[i]['date']).substring(0, 4) == String(BM[i+1]['date']).substring(0, 4)){
+          cpiCtr -= averageCtr
+        }
+      }
       averageCtr = 0
       average = 0
     }
@@ -224,6 +254,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       
       updateCorrelationChart();
       updateBMorCPIChart();
+      updateExpenseChart();
     });
     //change this to lookup the data for the given country and change the graph's labels and data
     // chart.data.labels =labels for the chosenCountry
@@ -235,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     data: {
         labels: CPI_labels,
         datasets: [{
-        label: '# of Votes',
+        label: 'CPI for chosen country',
         data: CPI_values,
         borderWidth: 1
         }]
@@ -255,29 +286,48 @@ document.addEventListener("DOMContentLoaded", function(event) {
     console.log("updating BMorCPIChart");
 
     BMorCPIChart.data.labels = CPI_labels;
-    BMorCPIChart.data.datasets.data = CPI_values;
+    BMorCPIChart.data.datasets[0].data = CPI_values;
     BMorCPIChart.update();
 
   }
 
-  const chart2 = new Chart(expenseChart, {
-    type: 'bar',
-    data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-        datasets: [{
-        label: 'the yearly expense of chosen country',
-        data: [12, 19, 3, 5, 2, 3],
-        borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-        y: {
-            beginAtZero: true
-        }
-        }
+
+  //GC.XPN.TOTL.GD.ZS
+  function initExpenseChart(){  
+    return new Chart(expenseChart, {
+      type: 'bar',
+      data: {
+          labels: getLabels(expenseList, 'year'),
+          datasets: [{
+          label: 'the yearly expense of chosen country',
+          data: getValues(expenseList, 'value'),
+          borderWidth: 1
+          }]
+      },
+      options: {
+          scales: {
+          y: {
+              beginAtZero: true
+          }
+          }
+      }
+      });
     }
-    });
+    function updateExpenseChart() {
+
+      console.log("updating Expense chart");
+      
+      const promptName = expenseMapper(chosenCountry)
+      expenseList = WORLD_BANK.filter(entry => entry.country_name == promptName);
+  
+      ExpenseChart.data.labels = getLabels(expenseList, 'year');
+      ExpenseChart.data.datasets[0].data = getValues(expenseList, 'value');
+  
+  
+      ExpenseChart.update();
+  
+    }
+  
 
 
   function initCorrelationChart(){  
@@ -306,7 +356,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     console.log("updating correlation chart");
 
     correlationChart.data.labels = getLabels(correlationList, 'date');
-    correlationChart.data.datasets.data = createCorrelationValuesList(correlationList, 'dollar_price');
+    correlationChart.data.datasets[0].data = createCorrelationValuesList(correlationList, 'dollar_price');
 
 
     correlationChart.update();
@@ -352,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
           );
           chosenCountry = mapChart.data.labels[res[0].index]
           // console.log(chosenCountry);
-          changeData(chart2);
+          changeData();
         },
       },
     });
