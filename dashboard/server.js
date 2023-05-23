@@ -2,74 +2,71 @@ const fs = require('fs');
 const http = require('http');
 
 class Content {
-  #mimeTypes = {
-    'html': 'text/html',
-    'css': 'text/css',
-    'csv': 'text/csv',
-    'js': 'text/javascript',
+  mimeTypes = {
+    html: 'text/html',
+    css: 'text/css',
+    csv: 'text/csv',
+    js: 'text/javascript',
   };
-  #getType(file) {
-    const suffix = file.substr(file.lastIndexOf('.') + 1);
-    const type = this.#mimeTypes[suffix];
-    return type ? type : `text/${suffix}`;
+  fileSuffix(file) {
+    file ||= this.file;
+    return file?.substring(file.lastIndexOf('.') + 1);
+  }
+  mapSuffixToMimeType(suffix) {
+    suffix ||= this.fileSuffix();
+    return this.mimeTypes[suffix] || `text/${suffix}`;
   }
   constructor(file, type) {
-    this.file = fs.readFileSync(file, {encoding: 'utf8', flag: 'r'});
-    this.type = type ? type : this.#getType(file);
+    this.file = file;
+    this.data = fs.readFileSync(file, {encoding: 'utf8', flag: 'r'});
+    this.type = type ? type : this.mapSuffixToMimeType();
   }
 }
 
 const dashboardHTML = new Content('./dashboard.html');
-const scriptJS = new Content('./script.js');
+const homePage = dashboardHTML;
 const styleCSS = new Content('./style.css');
 
-const dataDir = '../data/';
-const macRawCSV = new Content(dataDir + 'bigmac/raw-index.csv');
-const macAdjCSV = new Content(dataDir + 'bigmac/adjusted-index.csv');
+const jsContent = {
+  '/script.js': new Content('./script.js'),
+  '/constants.js': new Content('./constants.js'),
+};
 
-const cpiDir = dataDir + 'rateinf/';
-const cpiCSVs = new Map();
-fs.readdirSync(cpiDir).forEach(csv =>
-  cpiCSVs.set(csv, new Content(cpiDir + csv)));
+const dataDir = '../data';
+const macDir = `${dataDir}/bigmac`;
+const cpiDir = `${dataDir}/rateinf`;
+const csvContent = {
+  '/data/big-mac-adjusted-index.csv':
+      new Content(`${macDir}/adjusted-index.csv`),
+  '/data/big-mac-raw-index.csv': new Content(`${macDir}/raw-index.csv`),
+  ...Object.fromEntries(fs.readdirSync(cpiDir).map(
+      (csv) => [`/data/${csv}`, new Content(`${cpiDir}/${csv}`)])),
+};
+
+const queryResponses = {
+  '/': homePage,
+  '/dashboard': dashboardHTML,
+  '/style.css': styleCSS,
+  ...jsContent,
+  ...csvContent,
+};
 
 const hostname = 'localhost';
 const httpPort = 3000;
 
 const server = http.createServer((req, res) => {
   const query = req.url.split('?');
-  const msg =
-      query[1] ? decodeURIComponent(query[1].replace(/\+/g, ' ')) : null;
-  const ret200 = (content) => {
+  const msg = query.at(1)?.decodeURIComponent(query[1].replace(/\+/g, ' '));
+  const content = queryResponses[query[0]];
+  if (content) {
     res.statusCode = 200;
     res.setHeader('Content-Type', content.type);
-    res.end(content.file)
-  };
-  switch (query[0]) {
-    case '/':
-      ret200(dashboardHTML);
-      break;
-    case '/style.css':
-      ret200(styleCSS);
-      break;
-    case '/script.js':
-      ret200(scriptJS);
-      break;
-    case '/mac-raw.csv':
-      ret200(macRawCSV);
-      break;
-    case '/mac-adj.csv':
-      ret200(macAdjCSV);
-      break;
-    default:
-      const queryStr = query[0].substr(1);
-      if (cpiCSVs.has(queryStr)) {
-        ret200(cpiCSVs.get(queryStr));
-      } else {
-        console.log('404:', query);
-        res.statusCode = 404;
-        res.setHeader('Content-Type', 'text/plain');
-        res.end('404: not found');
-      }
+    res.end(content.data);
+  } else {
+    console.log('404:', query);
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('404: not found');
   }
 });
 
