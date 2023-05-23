@@ -309,26 +309,48 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
   }
 
-  function initCurrencyValueChart() {
-    return new Chart(CurrencyValueChart, {
-      type: 'bar',
-      data: {
-        labels: resDates,
-        datasets: [
-          {label: 'CPI for chosen country', data: resValues, borderWidth: 1},
-        ],
-      },
-      options: {indexAxis: 'y', scales: {y: {beginAtZero: true}}},
-    });
+ function getColour(val){
+  if(val >= 0){
+    return '#9BD0F5'
+  }else{
+    return'#FFB1C1'
   }
+}
 
-  function updateCurrencyValueChart() {
-    console.log('updating BMorCPIChart');
-    initializeTheCurrencyComparison();
-    currencyValueChart.data.labels = resDates;
-    currencyValueChart.data.datasets[0].data = resValues;
-    currencyValueChart.update();
+function initCurrencyValueChart(){
+  return new Chart(CurrencyValueChart, {
+  type: 'bar',
+  data: {
+      labels: resDates,
+      datasets: [{
+      label: 'CPI for chosen country',
+      data: resValues,
+      borderWidth: 1,
+      backgroundColor: resValues.map(val => getColour(val))
+      }]
+  },
+  options: {
+    indexAxis: 'y',
+      scales: {
+      y: {
+          beginAtZero: true
+      }
+      }
   }
+  });
+}
+
+function updateCurrencyValueChart() {
+
+  console.log("updating BMorCPIChart");
+  initializeTheCurrencyComparison();
+  currencyValueChart.data.labels = resDates
+  currencyValueChart.data.datasets[0].data = resValues
+  currencyValueChart.data.datasets[0].backgroundColor = resValues.map(val => getColour(val))
+  currencyValueChart.update();
+
+}
+
 
   function initIndividualChart() {
     return new Chart(ctx, {
