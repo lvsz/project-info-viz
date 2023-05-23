@@ -1,23 +1,25 @@
 const fs = require('fs');
 const http = require('http');
 
+const mimeTypes = {
+  html: 'text/html',
+  css: 'text/css',
+  csv: 'text/csv',
+  js: 'text/javascript',
+};
+
 class Content {
-  mimeTypes = {
-    html: 'text/html',
-    css: 'text/css',
-    csv: 'text/csv',
-    js: 'text/javascript',
-  };
   fileSuffix(file) {
-    file ||= this.file;
-    return file?.substring(file.lastIndexOf('.') + 1);
+    file = file || this.file;
+    return if (file) file.substring(file.lastIndexOf('.') + 1);
   }
   mapSuffixToMimeType(suffix) {
-    suffix ||= this.fileSuffix();
+    suffix = suffix || this.fileSuffix();
     return this.mimeTypes[suffix] || `text/${suffix}`;
   }
   constructor(file, type) {
     this.file = file;
+    this.mimeTypes = mimeTypes;
     this.data = fs.readFileSync(file, {encoding: 'utf8', flag: 'r'});
     this.type = type ? type : this.mapSuffixToMimeType();
   }
@@ -35,12 +37,21 @@ const jsContent = {
 const dataDir = '../data';
 const macDir = `${dataDir}/bigmac`;
 const cpiDir = `${dataDir}/rateinf`;
+
 const csvContent = {
+  '/data/big-mac-raw-index.csv': new Content(`${macDir}/raw-index.csv`),
   '/data/big-mac-adjusted-index.csv':
       new Content(`${macDir}/adjusted-index.csv`),
-  '/data/big-mac-raw-index.csv': new Content(`${macDir}/raw-index.csv`),
-  ...Object.fromEntries(fs.readdirSync(cpiDir).map(
-      (csv) => [`/data/${csv}`, new Content(`${cpiDir}/${csv}`)])),
+  '/data/CPI_ARG.csv': new Content(`${cpiDir}/CPI_ARG.csv`),
+  '/data/CPI_AUS.csv': new Content(`${cpiDir}/CPI_AUS.csv`),
+  '/data/CPI_CAN.csv': new Content(`${cpiDir}/CPI_CAN.csv`),
+  '/data/CPI_CHE.csv': new Content(`${cpiDir}/CPI_CHE.csv`),
+  '/data/CPI_EUR.csv': new Content(`${cpiDir}/CPI_EUR.csv`),
+  '/data/CPI_GBR.csv': new Content(`${cpiDir}/CPI_GBR.csv`),
+  '/data/CPI_JPN.csv': new Content(`${cpiDir}/CPI_JPN.csv`),
+  '/data/CPI_NZL.csv': new Content(`${cpiDir}/CPI_NZL.csv`),
+  '/data/CPI_RUS.csv': new Content(`${cpiDir}/CPI_RUS.csv`),
+  '/data/CPI_USA.csv': new Content(`${cpiDir}/CPI_USA.csv`),
 };
 
 const queryResponses = {
