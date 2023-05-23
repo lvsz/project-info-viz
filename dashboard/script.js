@@ -75,29 +75,29 @@ document.addEventListener('DOMContentLoaded', function(event) {
                                                 comparisonCountry;
     let answer1 = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName);
     let answer2 = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
-    var curCountryCTR = 0;
-    var comparisonCountryCTR = 0;
+    let curCountryIdx = 0;
+    let cmpCountryIdx = 0;
     resDates = [];
     resValues = [];
-    if ((typeof answer1 === 'undefined') == false) {
+    // if ((typeof answer1 === 'undefined') == false) {
+    if (answer1 != undefined) {
       console.log(answer1.length);
-      while (curCountryCTR < answer1.length &&
-             comparisonCountryCTR < answer2.length) {
-        var year1 =
-            Number(String(answer1[curCountryCTR]['date']).substring(0, 4));
-        var year2 = Number(
-            String(answer2[comparisonCountryCTR]['date']).substring(0, 4));
-        var value1 = Number(answer1[curCountryCTR]['dollar_price']);
-        var value2 = Number(answer2[comparisonCountryCTR]['dollar_price']);
+      while (curCountryIdx < answer1.length && cmpCountryIdx < answer2.length) {
+        const year1 = Number.parseInt(answer1[curCountryIdx]['date']);
+        const year2 = Number.parseInt(answer2[cmpCountryIdx]['date']);
+        const bigMacPrice1 =
+            Number.parseFloat(answer1[curCountryIdx]['dollar_price']);
+        const bigMacPrice2 =
+            Number.parseFloat(answer2[cmpCountryIdx]['dollar_price']);
         if (year1 == year2) {
           resDates.push(year1);
-          resValues.push(((value2 - value1) / value2) * 100);
-          curCountryCTR += 1;
-          comparisonCountryCTR += 1;
+          resValues.push(((bigMacPrice1 - bigMacPrice2) / bigMacPrice2) * 100);
+          curCountryIdx += 1;
+          cmpCountryIdx += 1;
         } else if (year1 < year2) {
-          curCountryCTR += 1;
+          curCountryIdx += 1;
         } else if (year1 > year2) {
-          comparisonCountryCTR += 1;
+          cmpCountryIdx += 1;
         }
       }
     }
@@ -170,59 +170,42 @@ document.addEventListener('DOMContentLoaded', function(event) {
   function lookupBM(country) {
     // console.log(RAW_INDEX);
     const promptName = bigMacMapper(country);
-    var answer = RAW_INDEX.filter(
+    let answer = RAW_INDEX.filter(
         (entry) => entry.iso_a3 == promptName && entry.date == chosenDate);
     // console.log(answer);
-    if (typeof answer[0] === 'undefined') {
-      answer = null;
-    } else {
-      answer = Number(answer[0]['dollar_price']);
-    }
-    return answer;
+    return Number.parseFloat(answer.at(0)?.dollar_price);
   }
 
   // get the labels, a date
   function getLabels(Array2D, decider) {
-    var resList = [];
-    for (let i = 0; i < Array2D.length; i++) {
-      resList.push(String(Array2D[i][decider]).substring(0, 4));
-    }
-    return resList;
+    return Array2D.map(x => x[decider].toString().substring(0, 4));
   }
   // get the values, an actual value like currency
   function getValues(Array2D, decider) {
-    var resList = [];
-    for (let i = 0; i < Array2D.length; i++) {
-      resList.push(Number(Array2D[i][decider]));
-    }
-    return resList;
+    return Array2D.map(x => Number(x[decider]));
   }
 
   // do we have the year in this bm also in the cpi
-  function isExistingYear(dateBM) {
-    return CPI_labels.includes(String(dateBM).substring(0, 4));
+  function isExistingYear(yearStr) {
+    return CPI_labels.includes(yearStr);
   }
 
   // creates a sublist of the bm with only years of the cpi
   function createCorrelationList() {
     const promptName = bigMacMapper(chosenCountry);
     // console.log(promptName)
-    var answer = RAW_INDEX.filter(
-        (entry) => entry.iso_a3 == promptName && isExistingYear(entry.date));
-    if (typeof answer[0] === 'undefined') {
-      answer = [];
-    } else {
-    }
-    correlationList = answer;
+    correlationList = RAW_INDEX.filter(
+        (entry) => entry.iso_a3 == promptName &&
+            isExistingYear(entry.date.substring(0, 4)));
   }
 
   // calculate the correlation between the average cpi in one year and a bm
   // value
   function createCorrelationValuesList(BM, decider) {
-    var resList = [];
-    var cpiCtr = 0;
-    var average = 0;
-    var averageCtr = 0;
+    let resList = [];
+    let cpiCtr = 0;
+    let average = 0;
+    let averageCtr = 0;
     for (let i = 0; i < BM.length; i++) {
       while (Number(CPI_labels[cpiCtr]) <
              Number(String(BM[i]['date']).substring(0, 4))) {
