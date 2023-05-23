@@ -264,14 +264,14 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: resDates,
         datasets: [
           {
-            label: 'CPI for chosen country',
+            label: 'Comparison of the value with USA',
             data: resValues,
             borderWidth: 1,
             backgroundColor: resValues.map((val) => getColour(val)),
           },
         ],
       },
-      options: {indexAxis: 'y', scales: {y: {beginAtZero: true}}},
+      options: {indexAxis: 'x', scales: {y: {beginAtZero: true}}},
     });
   }
 
