@@ -70,31 +70,28 @@ document.addEventListener('DOMContentLoaded', function(event) {
     const promptName = bigMacMapper(chosenCountry);
     let cmp = promptName == comparisonCountry ? altComparisonCountry :
                                                 comparisonCountry;
-    let answer1 = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName);
-    let answer2 = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
-    let curCountryIdx = 0;
-    let cmpCountryIdx = 0;
+    let thisCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName),
+        thatCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
+    let thisIdx = 0, thatIdx = 0;
     resDates = [];
     resValues = [];
     // if ((typeof answer1 === 'undefined') == false) {
-    if (answer1 != undefined) {
-      console.log(answer1.length);
-      while (curCountryIdx < answer1.length && cmpCountryIdx < answer2.length) {
-        const year1 = Number.parseInt(answer1[curCountryIdx]['date']);
-        const year2 = Number.parseInt(answer2[cmpCountryIdx]['date']);
-        const bigMacPrice1 =
-            Number.parseFloat(answer1[curCountryIdx]['dollar_price']);
-        const bigMacPrice2 =
-            Number.parseFloat(answer2[cmpCountryIdx]['dollar_price']);
-        if (year1 == year2) {
-          resDates.push(year1);
-          resValues.push(((bigMacPrice1 - bigMacPrice2) / bigMacPrice2) * 100);
-          curCountryIdx += 1;
-          cmpCountryIdx += 1;
-        } else if (year1 < year2) {
-          curCountryIdx += 1;
-        } else if (year1 > year2) {
-          cmpCountryIdx += 1;
+    if (thisCountry != undefined) {
+      console.log(thisCountry.length);
+      while (thisIdx < thisCountry.length && thatIdx < thatCountry.length) {
+        const thisYear = Number.parseInt(thisCountry[thisIdx].date),
+              thatYear = Number.parseInt(thatCountry[thatIdx].date);
+        const thisPrice = Number.parseFloat(thisCountry[thisIdx].dollar_price),
+              thatPrice = Number.parseFloat(thatCountry[thatIdx].dollar_price);
+        if (thisYear == thatYear) {
+          resDates.push(thisYear);
+          resValues.push(((thisPrice - thatPrice) / thatPrice) * 100);
+          thisIdx += 1;
+          thatIdx += 1;
+        } else if (thisYear < thatYear) {
+          thisIdx += 1;
+        } else {
+          thatIdx += 1;
         }
       }
     }
@@ -205,11 +202,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
     let averageCtr = 0;
     for (let i = 0; i < BM.length; i++) {
       while (Number(CPI_labels[cpiCtr]) <
-             Number(String(BM[i]['date']).substring(0, 4))) {
+             Number(String(BM[i].date).substring(0, 4))) {
         cpiCtr += 1;
       }
       while (cpiCtr < CPI_labels.length &&
-             CPI_labels[cpiCtr] == String(BM[i]['date']).substring(0, 4)) {
+             CPI_labels[cpiCtr] == String(BM[i].date).substring(0, 4)) {
         averageCtr += 1;
         cpiCtr += 1;
         average += CPI_values[cpiCtr];
@@ -217,8 +214,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
       average = average / averageCtr;
       resList.push(Number(BM[i][decider] / average));
       if (i + 1 < BM.length) {
-        if (String(BM[i]['date']).substring(0, 4) ==
-            String(BM[i + 1]['date']).substring(0, 4)) {
+        if (String(BM[i].date).substring(0, 4) ==
+            String(BM[i + 1].date).substring(0, 4)) {
           cpiCtr -= averageCtr;
         }
       }
