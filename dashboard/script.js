@@ -1,7 +1,4 @@
 document.addEventListener('DOMContentLoaded', function(event) {
-  const ctx = document.getElementById('myChart');
-  const comparisonCahrt = document.getElementById('CPItoBigMacComparisonChart');
-  const expenseChart = document.getElementById('expenseChart');
   const macBaseURL =
       'https://raw.githubusercontent.com/TheEconomist/big-mac-data/master/output-data/';
   const macRawCSV = macBaseURL + 'big-mac-raw-index.csv';
@@ -295,7 +292,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function initCurrencyValueChart() {
-    return new Chart(CurrencyValueChart, {
+    const ctx = document.getElementById('comparative-cpi-chart');
+    return new Chart(ctx, {
       type: 'bar',
       data: {
         labels: resDates,
@@ -316,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function initIndividualChart() {
+    const ctx = document.getElementById('nominal-cpi-chart');
     return new Chart(ctx, {
       type: 'bar',
       data: {
@@ -338,7 +337,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   // GC.XPN.TOTL.GD.ZS
   function initExpenseChart() {
-    return new Chart(expenseChart, {
+    const ctx = document.getElementById('annual-expense-chart');
+    return new Chart(ctx, {
       type: 'bar',
       data: {
         labels: getLabels(expenseList, 'year'),
@@ -367,7 +367,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function initCorrelationChart() {
-    return new Chart(comparisonCahrt, {
+    const ctx = document.getElementById('cpi-big-mac-correlation-chart');
+    return new Chart(ctx, {
       type: 'line',
       data: {
         labels: getLabels(correlationList, 'date'),
@@ -396,7 +397,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function initMap() {
-    mapChart = new Chart(document.getElementById('canvas').getContext('2d'), {
+    const ctx = document.getElementById('world-map');
+    mapChart = new Chart(ctx, {
       type: 'choropleth',
       data: {
         labels: countries.map((d) => d.properties.name),
