@@ -1,11 +1,9 @@
 document.addEventListener('DOMContentLoaded', function(event) {
-  const macBaseURL =
-      'https://raw.githubusercontent.com/TheEconomist/big-mac-data/master/output-data/';
-  const macRawCSV = macBaseURL + 'big-mac-raw-index.csv';
-  const macAdjCSV = macBaseURL + 'big-mac-adjusted-index.csv';
-  const cpiBaseURL =
-      'https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/';
-  const getCpiCSV = (req) => `${cpiBaseURL}CPI_${req}.csv`;
+  const macBaseURL = '/data';
+  const macRawCSV = `${macBaseURL}/big-mac-raw-index.csv`;
+  const macAdjCSV = `${macBaseURL}/big-mac-adjusted-index.csv`;
+  const cpiBaseURL = '/data';
+  const getCpiCSV = (req) => `${cpiBaseURL}/CPI_${req}.csv`;
 
   var chosenCountry = 'Euro area';
   var comparisonCountry = 'USA';
