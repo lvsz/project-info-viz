@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   var altComparisonCountry = 'EUZ';
   var chosenCPI = 'EUR';
   var chosenDate;
-  var chosenBaseCurrency = 'EUR';
+  var chosenComparisonCurrency = 'dollar_price';
   var RAW_INDEX;
   var CPI;
   var CPI_labels;
@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
       while (thisIdx < thisCountry.length && thatIdx < thatCountry.length) {
         const thisYear = Number.parseInt(thisCountry[thisIdx].date),
               thatYear = Number.parseInt(thatCountry[thatIdx].date);
-        const thisPrice = Number.parseFloat(thisCountry[thisIdx].dollar_price),
-              thatPrice = Number.parseFloat(thatCountry[thatIdx].dollar_price);
+        const thisPrice = Number.parseFloat(thisCountry[thisIdx][chosenComparisonCurrency]),
+              thatPrice = Number.parseFloat(thatCountry[thatIdx][chosenComparisonCurrency]);
         if (thisYear == thatYear) {
           resDates.push(thisYear);
           resValues.push(((thisPrice - thatPrice) / thatPrice) * 100);
@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     correlationChart = initCorrelationChart();
     BMorCPIChart = initIndividualChart();
     ExpenseChart = initExpenseChart();
+    initButton();
   }
 
   function updateDashboard() {
@@ -256,6 +257,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
   }
 
+  function changeCurrency(){
+      if(chosenComparisonCurrency == 'dollar_price'){
+        chosenComparisonCurrency = 'local_price'
+      }else{
+        chosenComparisonCurrency = 'dollar_price'
+      }
+      updateCurrencyValueChart();
+  }
+
+  function initButton(){
+    const ctx = document.getElementById("button");
+    ctx.onclick = changeCurrency;
+  }
+
   function initCurrencyValueChart() {
     const ctx = document.getElementById('comparative-cpi-chart');
     return new Chart(ctx, {
@@ -264,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: resDates,
         datasets: [
           {
-            label: 'Comparison of the value with USA',
+            label: 'Comparison of the value with USA: '+ chosenComparisonCurrency,
             data: resValues,
             borderWidth: 1,
             backgroundColor: resValues.map((val) => getColour(val)),
@@ -280,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     initializeTheCurrencyComparison();
     currencyValueChart.data.labels = resDates;
     currencyValueChart.data.datasets[0].data = resValues;
+    currencyValueChart.data.datasets[0].label = 'Comparison of the value with USA :'+ chosenComparisonCurrency;
     currencyValueChart.data.datasets[0].backgroundColor =
         resValues.map((val) => getColour(val));
     currencyValueChart.update();
