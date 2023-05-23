@@ -132,11 +132,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   // get the labels, a date
   function getLabels(Array2D, decider) {
-    return Array2D.map(x => x[decider].toString().substring(0, 4));
+    return Array2D.map((x) => x[decider].toString().substring(0, 4));
   }
   // get the values, an actual value like currency
   function getValues(Array2D, decider) {
-    return Array2D.map(x => Number(x[decider]));
+    return Array2D.map((x) => Number(x[decider]));
   }
 
   // do we have the year in this bm also in the cpi
@@ -248,6 +248,14 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
   }
 
+  function getColour(val) {
+    if (val >= 0) {
+      return '#9BD0F5';
+    } else {
+      return '#FFB1C1';
+    }
+  }
+
   function initCurrencyValueChart() {
     const ctx = document.getElementById('comparative-cpi-chart');
     return new Chart(ctx, {
@@ -255,7 +263,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
       data: {
         labels: resDates,
         datasets: [
-          {label: 'CPI for chosen country', data: resValues, borderWidth: 1},
+          {
+            label: 'CPI for chosen country',
+            data: resValues,
+            borderWidth: 1,
+            backgroundColor: resValues.map((val) => getColour(val)),
+          },
         ],
       },
       options: {indexAxis: 'y', scales: {y: {beginAtZero: true}}},
@@ -267,6 +280,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     initializeTheCurrencyComparison();
     currencyValueChart.data.labels = resDates;
     currencyValueChart.data.datasets[0].data = resValues;
+    currencyValueChart.data.datasets[0].backgroundColor =
+        resValues.map((val) => getColour(val));
     currencyValueChart.update();
   }
 
