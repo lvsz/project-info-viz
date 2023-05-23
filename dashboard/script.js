@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     let thisCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName),
         thatCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
     let thisIdx = 0, thatIdx = 0;
+
     resDates = [];
     resValues = [];
     // if ((typeof answer1 === 'undefined') == false) {
@@ -81,18 +82,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
       while (thisIdx < thisCountry.length && thatIdx < thatCountry.length) {
         const thisYear = Number.parseInt(thisCountry[thisIdx].date),
               thatYear = Number.parseInt(thatCountry[thatIdx].date);
-        const thisPrice = Number.parseFloat(thisCountry[thisIdx][chosenComparisonCurrency]),
-              thatPrice = Number.parseFloat(thatCountry[thatIdx][chosenComparisonCurrency]);
-        if (thisYear == thatYear) {
+        const thisPrice = Number.parseFloat(thisCountry[thisIdx].local_price),//[chosenComparisonCurrency]),
+              thatPrice = Number.parseFloat(thisCountry[thisIdx].dollar_price)//[chosenComparisonCurrency]//Number.parseFloat(thatCountry[thatIdx][chosenComparisonCurrency]);
+        const exchange_rate = Number.parseFloat(thisCountry[thisIdx].dollar_ex)
+        // if (true){//thisYear == thatYear) {
           resDates.push(thisYear);
-          resValues.push(((thisPrice - thatPrice) / thatPrice) * 100);
+          // resValues.push(Math.floor(((thatPrice - thisPrice) / thatPrice) * 100));
+          resValues.push(Math.floor((exchange_rate - 1) *100));
           thisIdx += 1;
           thatIdx += 1;
-        } else if (thisYear < thatYear) {
-          thisIdx += 1;
-        } else {
-          thatIdx += 1;
-        }
+        // } else if (thisYear < thatYear) {
+        //   thisIdx += 1;
+        // } else {
+        //   thatIdx += 1;
+        // }
       }
     }
   }
@@ -107,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     correlationChart = initCorrelationChart();
     BMorCPIChart = initIndividualChart();
     ExpenseChart = initExpenseChart();
-    initButton();
+    // initButton();
   }
 
   function updateDashboard() {
@@ -279,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: resDates,
         datasets: [
           {
-            label: 'Comparison of the value with USA: '+ chosenComparisonCurrency,
+            label: 'Comparison of the value with USA in percentage',//+ chosenComparisonCurrency,
             data: resValues,
             borderWidth: 1,
             backgroundColor: resValues.map((val) => getColour(val)),
@@ -295,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     initializeTheCurrencyComparison();
     currencyValueChart.data.labels = resDates;
     currencyValueChart.data.datasets[0].data = resValues;
-    currencyValueChart.data.datasets[0].label = 'Comparison of the value with USA :'+ chosenComparisonCurrency;
+    // currencyValueChart.data.datasets[0].label = 'Comparison of the value with USA',//+ chosenComparisonCurrency;
     currencyValueChart.data.datasets[0].backgroundColor =
         resValues.map((val) => getColour(val));
     currencyValueChart.update();
