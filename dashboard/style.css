@@ -1,16 +1,22 @@
 body {
-    background-color: #f5f5f5;
+    background-color: #e7ecf2;
 }
 
 .card {
-    border-radius: 0;
+    border-radius: 6px;
     padding: 10px;
+    font-weight: bold;
+    text-align: center;
+    border-style: outset;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: darkslateblue;
 }
 
 .swiper-container {
     overflow: hidden;
     position: relative;
-    --swiper-navigation-color: black;
+    --swiper-navigation-color: darkslateblue;
     --swiper-navigation-size: 20px;
 }
 
@@ -23,18 +29,19 @@ body {
 }
 
 .map-elem {
-        color: navy;
+        color: darkslateblue;
+        font-size: 22px;
         font-weight: bold;
         text-align: center;
         border-style: outset;
         border-width: 1px;
         border-radius: 4px;
-        border-color: navy;
+        border-color: darkslateblue;
         background-color: unset;
     }
 
-.map-elem#hover {
-    color: blue;
+.map-elem:hover {
+    color: navy;
     background-color: white;
 }
 
