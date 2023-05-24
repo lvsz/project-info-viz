@@ -10,8 +10,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   var altComparisonCountry = 'EUZ';
   var chosenCPI = 'EUR';
   var chosenDate;
-  var chosenBaseCurrency = 'EUR';
+  var chosenComparisonCurrency = 'dollar_price';
   var RAW_INDEX;
+  var ADJ_INDEX;
   var CPI;
   var CPI_labels;
   var CPI_values;
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   Promise
       .all([
         d3.csv(macRawCSV),
+        d3.csv("https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/bigmac/raw-index-valued.csv"),
         d3.csv(getCpiCSV(chosenCPI)),
         d3.csv(
             'https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/world_bank/WB-DATA.csv'),
@@ -42,23 +44,25 @@ document.addEventListener('DOMContentLoaded', function(event) {
       .then(function(values) {
         // D3
         RAW_INDEX = values[0];
+        ADJ_INDEX = values[1];
+        console.log(ADJ_INDEX)
         initializeTheCurrencyComparison();
 
         // cpi
-        CPI = values[1];
+        CPI = values[2];
         CPI_labels = getLabels(CPI, 'Date');
         CPI_values = getValues(CPI, 'Value');
         createCorrelationList();
 
         // expense test
-        WORLD_BANK = values[2];
+        WORLD_BANK = values[3];
         const promptName = worldBankMapper(chosenCountry);
         expenseList =
             WORLD_BANK.filter((entry) => entry.country_name == promptName);
 
         // World Atlas
         countries =
-            ChartGeo.topojson.feature(values[3], values[3].objects.countries)
+            ChartGeo.topojson.feature(values[4], values[4].objects.countries)
                 .features;
 
         initDashboard();
@@ -66,31 +70,24 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function initializeTheCurrencyComparison() {
     const promptName = bigMacMapper(chosenCountry);
+    console.log(promptName)
     let cmp = promptName == comparisonCountry ? altComparisonCountry :
                                                 comparisonCountry;
-    let thisCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName),
-        thatCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
+    let thisCountry = ADJ_INDEX.filter((entry) => entry.iso_a3 == promptName)
     let thisIdx = 0, thatIdx = 0;
+
     resDates = [];
     resValues = [];
-    // if ((typeof answer1 === 'undefined') == false) {
     if (thisCountry != undefined) {
       console.log(thisCountry.length);
-      while (thisIdx < thisCountry.length && thatIdx < thatCountry.length) {
-        const thisYear = Number.parseInt(thisCountry[thisIdx].date),
-              thatYear = Number.parseInt(thatCountry[thatIdx].date);
-        const thisPrice = Number.parseFloat(thisCountry[thisIdx].dollar_price),
-              thatPrice = Number.parseFloat(thatCountry[thatIdx].dollar_price);
-        if (thisYear == thatYear) {
+      while (thisIdx < thisCountry.length) {
+        const thisYear = Number.parseInt(thisCountry[thisIdx].date)
+        const exchange_rate = Number.parseFloat(thisCountry[thisIdx].over_under_valued)
+        console.log(exchange_rate)
           resDates.push(thisYear);
-          resValues.push(((thisPrice - thatPrice) / thatPrice) * 100);
+          resValues.push(Math.round(exchange_rate));
           thisIdx += 1;
           thatIdx += 1;
-        } else if (thisYear < thatYear) {
-          thisIdx += 1;
-        } else {
-          thatIdx += 1;
-        }
       }
     }
   }
@@ -105,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     correlationChart = initCorrelationChart();
     BMorCPIChart = initIndividualChart();
     ExpenseChart = initExpenseChart();
+    // initButton();
   }
 
   function updateDashboard() {
@@ -225,7 +223,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function changeData() {
+    console.log(chosenCountry)
     chosenCPI = cpiMap[chosenCountry];
+    console.log(chosenCPI)
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
@@ -243,6 +243,18 @@ document.addEventListener('DOMContentLoaded', function(event) {
       // graph's labels and data
       //  chart.data.labels =labels for the chosenCountry
       //  chart.data.datasets[0]. data =labels for the chosenCountry
+    }else{
+      
+        // cpi
+        CPI = []
+        CPI_labels = [];
+        CPI_values = [];
+        createCorrelationList();
+
+        updateCorrelationChart();
+        updateBMorCPIChart();
+        updateExpenseChart();
+        updateCurrencyValueChart();
     }
   }
 
@@ -254,6 +266,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
   }
 
+  function changeCurrency(){
+      if(chosenComparisonCurrency == 'dollar_price'){
+        chosenComparisonCurrency = 'local_price'
+      }else{
+        chosenComparisonCurrency = 'dollar_price'
+      }
+      updateCurrencyValueChart();
+  }
+
+  function initButton(){
+    const ctx = document.getElementById("button");
+    ctx.onclick = changeCurrency;
+  }
+
   function initCurrencyValueChart() {
     const ctx = document.getElementById('comparative-cpi-chart');
     return new Chart(ctx, {
@@ -262,14 +288,14 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: resDates,
         datasets: [
           {
-            label: 'CPI for chosen country',
+            label: 'Comparison of the value with USA in percentage',//+ chosenComparisonCurrency,
             data: resValues,
             borderWidth: 1,
             backgroundColor: resValues.map((val) => getColour(val)),
           },
         ],
       },
-      options: {indexAxis: 'y', scales: {y: {beginAtZero: true}}},
+      options: {indexAxis: 'x', scales: {y: {beginAtZero: true}}},
     });
   }
 
@@ -278,6 +304,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     initializeTheCurrencyComparison();
     currencyValueChart.data.labels = resDates;
     currencyValueChart.data.datasets[0].data = resValues;
+    // currencyValueChart.data.datasets[0].label = 'Comparison of the value with USA',//+ chosenComparisonCurrency;
     currencyValueChart.data.datasets[0].backgroundColor =
         resValues.map((val) => getColour(val));
     currencyValueChart.update();
