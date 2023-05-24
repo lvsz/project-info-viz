@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function(event) {
-  const macBaseURL = '/data';
+  const macBaseURL =
+      'https://raw.githubusercontent.com/TheEconomist/big-mac-data/master/output-data';
   const macRawCSV = `${macBaseURL}/big-mac-raw-index.csv`;
   const macAdjCSV = `${macBaseURL}/big-mac-adjusted-index.csv`;
-  const cpiBaseURL = '/data';
+  const cpiBaseURL =
+      'https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/rateinf';
   const getCpiCSV = (req) => `${cpiBaseURL}/CPI_${req}.csv`;
 
   var chosenCountry = 'Euro area';
