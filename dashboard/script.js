@@ -239,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     console.log(chosenCountry);
     chosenCPI = cpiMap[chosenCountry];
     console.log(chosenCPI);
+    document.querySelector('#countrySelector').value = chosenCountry;
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
