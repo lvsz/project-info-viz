@@ -1,13 +1,14 @@
 document.addEventListener('DOMContentLoaded', function(event) {
   const macBaseURL =
       'https://raw.githubusercontent.com/TheEconomist/big-mac-data/master/output-data/';
-  const macRawCSV = macBaseURL + 'big-mac-raw-index.csv';
+  const macRawCSV = "http://files.ibuildpages.com/raw-index-valued.csv";
   const macAdjCSV = macBaseURL + 'big-mac-adjusted-index.csv';
   const cpiBaseURL =
       'https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/';
   const getCpiCSV = (req) => `${cpiBaseURL}CPI_${req}.csv`;
 
   var chosenCountry = 'Euro area';
+  var chosenCountryName = 'Euro area';
   var comparisonCountry = 'USA';
   var altComparisonCountry = 'EUZ';
   var chosenCPI = 'EUR';
@@ -54,9 +55,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
         // expense test
         WORLD_BANK = values[2];
-        const promptName = worldBankMapper(chosenCountry);
+        // const promptName = worldBankMapper(chosenCountry);
         expenseList =
-            WORLD_BANK.filter((entry) => entry.country_name == promptName);
+            WORLD_BANK.filter((entry) => parseInt(entry.country_number) == chosenCountry);
 
         // World Atlas
         countries =
@@ -67,11 +68,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
       });
 
   function initializeTheCurrencyComparison() {
-    const promptName = bigMacMapper(chosenCountry);
-    let cmp = promptName == comparisonCountry ? altComparisonCountry :
-                                                comparisonCountry;
-    let thisCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName),
-        thatCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == cmp);
+    // MOET NOG BETER GEFIXT WORDEN
+    // //const promptName = bigMacMapper(chosenCountry);
+    // let cmp = promptName == comparisonCountry ? altComparisonCountry :
+    //                                             comparisonCountry;
+    let thisCountry = RAW_INDEX.filter((entry) => parseInt(entry.country_number) == chosenCountry),
+        thatCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == comparisonCountry); 
     let thisIdx = 0, thatIdx = 0;
 
     resDates = [];
@@ -117,19 +119,20 @@ document.addEventListener('DOMContentLoaded', function(event) {
     updateMap();
   }
 
-  function bigMacMapper(country) {
-    return bigMacMap[country] || null;
-  }
+  // function bigMacMapper(country) {
+  //   return bigMacMap[country] || null;
+  // }
 
-  function worldBankMapper(country) {
-    return worldBankMap[country] || country;
-  }
+  // function worldBankMapper(country) {
+  //   return worldBankMap[country] || country;
+  // }
 
-  function lookupBM(country) {
+  function lookupBM(countryNumber) {
     // console.log(RAW_INDEX);
-    const promptName = bigMacMapper(country);
-    let answer = RAW_INDEX.filter(
-        (entry) => entry.iso_a3 == promptName && entry.date == chosenDate);
+
+    //const promptName = bigMacMapper(country);
+
+    let answer = RAW_INDEX.filter((entry) => parseInt(entry.country_number) == parseInt(countryNumber) && entry.date == chosenDate);
     // console.log(answer);
     return Number.parseFloat(answer.at(0)?.dollar_price);
   }
@@ -150,10 +153,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   // creates a sublist of the bm with only years of the cpi
   function createCorrelationList() {
-    const promptName = bigMacMapper(chosenCountry);
+    // const promptName = bigMacMapper(chosenCountry);
     // console.log(promptName)
     correlationList = RAW_INDEX.filter(
-        (entry) => entry.iso_a3 == promptName &&
+        (entry) => parseInt(entry.country_number) == chosenCountry &&
             isExistingYear(entry.date.substring(0, 4)));
   }
 
@@ -231,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function changeData() {
-    chosenCPI = cpiMap[chosenCountry];
+    chosenCPI = cpiMap[chosenCountryName];
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
@@ -347,9 +350,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   function updateExpenseChart() {
     console.log('updating Expense chart');
 
-    const promptName = worldBankMapper(chosenCountry);
+    // const promptName = worldBankMapper(chosenCountry);
     expenseList =
-        WORLD_BANK.filter((entry) => entry.country_name == promptName);
+        WORLD_BANK.filter((entry) => parseInt(entry.country_number) == chosenCountry);
 
     ExpenseChart.data.labels = getLabels(expenseList, 'year');
     ExpenseChart.data.datasets[0].data = getValues(expenseList, 'value');
@@ -392,13 +395,13 @@ document.addEventListener('DOMContentLoaded', function(event) {
     mapChart = new Chart(ctx, {
       type: 'choropleth',
       data: {
-        labels: countries.map((d) => d.properties.name),
+        labels: countries.map((country) => country.properties.name),
         datasets: [
           {
             label: 'Countries',
-            data: countries.map((d) => ({
-                                  feature: d,
-                                  value: lookupBM(d.properties.name),
+            data: countries.map((country) => ({
+                                  feature: country,
+                                  value: lookupBM(country.id),
                                 })),
           },
         ],
@@ -420,7 +423,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
         onClick: (e) => {
           const res = mapChart.getElementsAtEventForMode(
               e, 'nearest', {intersect: true}, true);
-          chosenCountry = mapChart.data.labels[res[0]?.index];
+          chosenCountry = parseInt(mapChart.data.datasets[0].data[res[0]?.index].feature.id);
+          chosenCountryName = mapChart.data.labels[res[0]?.index];
           // console.log(chosenCountry);
           changeData();
         },
@@ -435,9 +439,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
         mapChart.data.datasets.filter((e) => e.label == 'Countries')[0].data);
 
     mapChart.data.datasets.filter((e) => e.label == 'Countries')[0].data =
-        countries.map((d) => ({
-                        feature: d,
-                        value: lookupBM(d.properties.name),
+        countries.map((country) => ({
+                        feature: country,
+                        value: lookupBM(country.id),
                       }));
 
     mapChart.update();
