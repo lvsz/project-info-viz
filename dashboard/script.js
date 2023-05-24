@@ -225,7 +225,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function changeData() {
+    console.log(chosenCountry)
     chosenCPI = cpiMap[chosenCountry];
+    console.log(chosenCPI)
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
@@ -243,6 +245,18 @@ document.addEventListener('DOMContentLoaded', function(event) {
       // graph's labels and data
       //  chart.data.labels =labels for the chosenCountry
       //  chart.data.datasets[0]. data =labels for the chosenCountry
+    }else{
+      
+        // cpi
+        CPI = []
+        CPI_labels = [];
+        CPI_values = [];
+        createCorrelationList();
+
+        updateCorrelationChart();
+        updateBMorCPIChart();
+        updateExpenseChart();
+        updateCurrencyValueChart();
     }
   }
 
