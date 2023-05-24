@@ -105,10 +105,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function initDashboard() {
     let dates = [...new Set(RAW_INDEX.map((row) => row.date))];
+    let countries = [...new Set(RAW_INDEX.map((row) => row.name))];
     chosenDate = dates[0];
 
     initTimeSlider(dates);
     mapChart = initMap();
+    initCountrySelector(countries, chosenCountry);
     currencyValueChart = initCurrencyValueChart();
     correlationChart = initCorrelationChart();
     BMorCPIChart = initIndividualChart();
@@ -237,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     console.log(chosenCountry);
     chosenCPI = cpiMap[chosenCountry];
     console.log(chosenCPI);
+    document.querySelector('#countrySelector').value = chosenCountry;
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
@@ -433,6 +436,24 @@ document.addEventListener('DOMContentLoaded', function(event) {
         createCorrelationValuesList(correlationList, 'dollar_price');
 
     correlationChart.update();
+  }
+
+  function initCountrySelector(countries, defaultCountry) {
+    let selector = document.querySelector('#countrySelector');
+    countries.sort().forEach((country) => {
+      var opt = document.createElement('option');
+      opt.value = country;
+      opt.innerHTML = country;
+      selector.appendChild(opt);
+    });
+    selector.value = defaultCountry;
+
+    selector.addEventListener("change", () => {
+      console.log(selector.value);
+      chosenCountry = selector.value;
+      changeData();
+    });
+
   }
 
   function initMap() {
