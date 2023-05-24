@@ -44,27 +44,28 @@ document.addEventListener('DOMContentLoaded', function(event) {
             'https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')  // placeholder
             .then((r) => r.json()),
       ])
-      .then(function(values) {
+      .then(function(data) {
         // D3
-        RAW_INDEX = values[0];
-        ADJ_INDEX = values[1];
+        RAW_INDEX = data[0];
+        ADJ_INDEX = data[1];
         initializeTheCurrencyComparison();
 
         // cpi
-        CPI = values[2];
-        CPI_labels = getLabels(CPI, 'Date');
-        CPI_values = getValues(CPI, 'Value');
+        CPI = data[2];
+        const {labels, values} = getLabelsAndValues(CPI, 'Date', 'Value');
+        CPI_labels = labels;
+        CPI_values = values;
         createCorrelationList();
 
         // expense test
-        WORLD_BANK = values[3];
+        WORLD_BANK = data[3];
         const promptName = worldBankMapper(chosenCountry);
         expenseList =
             WORLD_BANK.filter((entry) => entry.country_name == promptName);
 
         // World Atlas
         countries =
-            ChartGeo.topojson.feature(values[4], values[4].objects.countries)
+            ChartGeo.topojson.feature(data[4], data[4].objects.countries)
                 .features;
 
         initDashboard();
@@ -131,26 +132,32 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function lookupBM(country) {
-    // console.log(RAW_INDEX);
     const promptName = bigMacMapper(country);
     let answer = RAW_INDEX.filter(
         (entry) => entry.iso_a3 == promptName && entry.date == chosenDate);
-    // console.log(answer);
     return Number.parseFloat(answer.at(0)?.dollar_price);
   }
 
-  // get the labels, a date
-  function getLabels(Array2D, decider) {
-    return Array2D.map((x) => x[decider].toString().substring(0, 4));
+  // get the labels (year) and values (number)
+  function getLabelsAndValues(Array2D, labelKey, valueKey) {
+    const getLabelValPair = (x) =>
+        ({label: Number.parseInt(x[labelKey]), value: Number(x[valueKey])});
+    const pairs =
+        Array2D.map(getLabelValPair).sort((a, b) => a.label - b.label);
+    return {
+      labels: pairs.map((x) => x.label),
+      values: pairs.map((x) => x.value)
+    };
   }
-  // get the values, an actual value like currency
-  function getValues(Array2D, decider) {
-    return Array2D.map((x) => Number(x[decider]));
+
+  // only get the labels, a date
+  function getLabels(Array2D, decider) {
+    return getLabelsAndValues(Array2D, decider).labels;
   }
 
   // do we have the year in this bm also in the cpi
-  function isExistingYear(yearStr) {
-    return CPI_labels.includes(yearStr);
+  function isExistingYear(year) {
+    return CPI_labels.includes(year);
   }
 
   // creates a sublist of the bm with only years of the cpi
@@ -159,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     // console.log(promptName)
     correlationList = RAW_INDEX.filter(
         (entry) => entry.iso_a3 == promptName &&
-            isExistingYear(entry.date.substring(0, 4)));
+            isExistingYear(Number.parseInt(entry.date)));
   }
 
   // calculate the correlation between the average cpi in one year and a bm
@@ -241,11 +248,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
     console.log(chosenCPI);
     document.querySelector('#countrySelector').value = chosenCountry;
     if (chosenCPI !== undefined) {
-      Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
+      Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(data) {
         // cpi
-        CPI = values[0];
-        CPI_labels = getLabels(CPI, 'Date');
-        CPI_values = getValues(CPI, 'Value');
+        CPI = data[0];
+        const {labels, values} = getLabelsAndValues(CPI, 'Date', 'Value')
+        CPI_labels = labels;
+        CPI_values = values;
         createCorrelationList();
 
         updateCorrelationChart();
@@ -380,14 +388,15 @@ document.addEventListener('DOMContentLoaded', function(event) {
   // GC.XPN.TOTL.GD.ZS
   function initExpenseChart() {
     const ctx = document.getElementById('annual-expense-chart');
+    const {labels, values} = getLabelsAndValues(expenseList, 'year', 'value');
     return new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: getLabels(expenseList, 'year'),
+        labels: labels,
         datasets: [
           {
             label: 'the yearly expense of chosen country',
-            data: getValues(expenseList, 'value'),
+            data: values,
             borderWidth: 1,
           },
         ],
@@ -402,8 +411,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
     expenseList =
         WORLD_BANK.filter((entry) => entry.country_name == promptName);
 
-    ExpenseChart.data.labels = getLabels(expenseList, 'year');
-    ExpenseChart.data.datasets[0].data = getValues(expenseList, 'value');
+    const {labels, values} = getLabelsAndValues(expenseList, 'year', 'value');
+    ExpenseChart.data.labels = labels;
+    ExpenseChart.data.datasets[0].data = values;
 
     ExpenseChart.update();
   }
