@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function initializeTheCurrencyComparison() {
     const promptName = bigMacMapper(chosenCountry);
-    console.log(promptName)
+    console.log(promptName);
     let thisCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName);
     let thatCountry =
         RAW_INDEX.filter((entry) => entry.iso_a3 == comparisonCountry);
@@ -82,13 +82,13 @@ document.addEventListener('DOMContentLoaded', function(event) {
       let thisIdx = 0;
       console.log(thisCountry.length);
       while (thisIdx < thisCountry.length) {
-        const thisYear = Number.parseInt(thisCountry[thisIdx].date)
+        const thisYear = Number.parseInt(thisCountry[thisIdx].date);
         // const exchange_rate =
         // Number.parseFloat(thisCountry[thisIdx].over_under_valued)
-        const exchange_rate = Number.parseFloat(thisCountry[thisIdx].USD * 100)
+        const exchange_rate = Number.parseFloat(thisCountry[thisIdx].USD * 100);
         const thisPrice = Number.parseFloat(thisCountry[thisIdx].dollar_price);
         const thatPrice = Number.parseFloat(thatCountry[thisIdx].dollar_price);
-        console.log(exchange_rate)
+        console.log(exchange_rate);
         resDates.push(thisYear);
         resValues.push(exchange_rate.toFixed(2));
         resPrices.push([thisPrice.toFixed(2), thatPrice.toFixed(2)]);
@@ -232,9 +232,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function changeData() {
-    console.log(chosenCountry)
+    console.log(chosenCountry);
     chosenCPI = cpiMap[chosenCountry];
-    console.log(chosenCPI)
+    console.log(chosenCPI);
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
@@ -252,10 +252,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
       // graph's labels and data
       //  chart.data.labels =labels for the chosenCountry
       //  chart.data.datasets[0]. data =labels for the chosenCountry
-    }
-    else {
+    } else {
       // cpi
-      CPI = []
+      CPI = [];
       CPI_labels = [];
       CPI_values = [];
       createCorrelationList();
@@ -277,9 +276,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function changeCurrency() {
     if (chosenComparisonCurrency == 'dollar_price') {
-      chosenComparisonCurrency = 'local_price'
+      chosenComparisonCurrency = 'local_price';
     } else {
-      chosenComparisonCurrency = 'dollar_price'
+      chosenComparisonCurrency = 'dollar_price';
     }
     updateCurrencyValueChart();
   }
