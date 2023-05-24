@@ -456,13 +456,13 @@ document.addEventListener('DOMContentLoaded', function(event) {
         showGraticule: true,
         plugins: {
           legend: {
-            display: false,
+            display: true,
           },
         },
         scales: {
           projection: {
             axis: 'x',
-            projection: 'equalEarth',
+            projection: 'equirectangular',
           },
         },
         onClick: (e) => {
@@ -495,4 +495,18 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     mapChart.update();
   }
+});
+
+var oldmap;
+document.getElementById('hide').addEventListener('click', function() {
+  let worldmap = document.getElementById('to-hide');
+  oldmap = [...worldmap.childNodes];
+  worldmap.replaceChildren();
+  document.getElementById('show').style.display = 'block';
+});
+
+document.getElementById('show').addEventListener('click', function() {
+  let map = document.getElementById('to-hide');
+  map.replaceChildren(...oldmap);
+  document.getElementById('show').style.display = 'none';
 });

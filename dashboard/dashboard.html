@@ -22,6 +22,7 @@
     />
 
     <link rel="stylesheet" href="style.css" />
+    <style></style>
   </head>
 
   <body>
@@ -29,31 +30,47 @@
       <div class="row mt-5">
         <h1 class="mb-4">Big Mac Index Dashboard</h1>
       </div>
+      <button id="show" style="display: none">show</button>
+      <div id="to-hide">
+        <div class="row gy-4 mb-4">
+          <div class="col-md-12">
+            <div class="card">
+              <canvas id="world-map"></canvas>
 
-      <div class="row gy-4 mb-4">
-        <div class="col-md-6">
-          <div class="card">
-            <canvas
-              id="world-map"
-              style="
-                display: block;
-                box-sizing: border-box;
-                height: 492px;
-                width: 985px;
-              "
-              width="985"
-              height="492"
-            ></canvas>
-
-            <div class="swiper-container" id="time-slider">
-              <div class="swiper-wrapper"></div>
-              <div class="swiper-button-prev"></div>
-              <div class="swiper-button-next"></div>
-              <div class="swiper-scrollbar"></div>
+              <div class="swiper-container" id="time-slider">
+                <div class="swiper-wrapper"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-scrollbar"></div>
+              </div>
+              <button id="hide" style="position: absolute; top: 0; left: 0">
+                hide
+              </button>
             </div>
           </div>
         </div>
 
+        <script>
+          var oldmap;
+          document
+            .getElementById("hide")
+            .addEventListener("click", function () {
+              let worldmap = document.getElementById("to-hide");
+              oldmap = [...worldmap.childNodes];
+              worldmap.replaceChildren();
+              document.getElementById("show").style.display = "block";
+            });
+          document
+            .getElementById("show")
+            .addEventListener("click", function () {
+              let map = document.getElementById("to-hide");
+              map.replaceChildren(...oldmap);
+              document.getElementById("show").style.display = "none";
+            });
+        </script>
+      </div>
+
+      <div class="row gy-4 mb-4">
         <div class="col-md-6">
           <!-- <Button id="button" variant="contained" color="secondary">
             switch currency
@@ -62,22 +79,20 @@
             <canvas id="comparative-cpi-chart"></canvas>
           </div>
         </div>
-      </div>
-
-      <div class="row gy-4">
-        <div class="col-md-4">
+        <div class="col-md-6">
           <div class="card">
             <canvas id="cpi-big-mac-correlation-chart"></canvas>
           </div>
         </div>
-
-        <div class="col-md-4">
+      </div>
+      <div class="row gy-4">
+        <div class="col-md-6">
           <div class="card">
             <canvas id="annual-expense-chart"></canvas>
           </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
           <div class="card">
             <div>
               <canvas id="nominal-cpi-chart"></canvas>
