@@ -22,7 +22,22 @@ body {
     font-size: 20px;
 }
 
-#countrySelector {
-    height: 32px;
-    font-size: 20px;
+.map-elem {
+        color: navy;
+        font-weight: bold;
+        text-align: center;
+        border-style: outset;
+        border-width: 1px;
+        border-radius: 4px;
+        border-color: navy;
+        background-color: unset;
+    }
+
+.map-elem#hover {
+    color: blue;
+    background-color: white;
+}
+
+.map-elem:active {
+    box-shadow: inset -2px -2px 2px white, inset 2px 2px 2px grey;
 }

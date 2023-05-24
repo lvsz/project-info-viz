@@ -448,12 +448,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
     });
     selector.value = defaultCountry;
 
-    selector.addEventListener("change", () => {
+    selector.addEventListener('change', () => {
       console.log(selector.value);
       chosenCountry = selector.value;
       changeData();
     });
-
   }
 
   function initMap() {
@@ -518,16 +517,19 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 });
 
-var oldmap;
-document.getElementById('hide').addEventListener('click', function() {
-  let worldmap = document.getElementById('to-hide');
+var oldmap = [];
+document.getElementById('hide-btn').addEventListener('click', function() {
+  let worldmap = document.getElementById('map-and-slider');
+  console.dir(worldmap);
   oldmap = [...worldmap.childNodes];
   worldmap.replaceChildren();
-  document.getElementById('show').style.display = 'block';
+  document.getElementById('hide-btn').style.display = 'none';
+  document.getElementById('show-btn').style.display = 'block';
 });
 
-document.getElementById('show').addEventListener('click', function() {
-  let map = document.getElementById('to-hide');
-  map.replaceChildren(...oldmap);
-  document.getElementById('show').style.display = 'none';
+document.getElementById('show-btn').addEventListener('click', function() {
+  let worldmap = document.getElementById('map-and-slider');
+  worldmap.replaceChildren(...oldmap);
+  document.getElementById('hide-btn').style.display = 'block';
+  document.getElementById('show-btn').style.display = 'none';
 });
