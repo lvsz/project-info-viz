@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
       }
       if (currencyValueChart) {
         currencyValueChart.data.datasets[0].label =
-            `Price of a Big Mac: ${promptName} vs USA`;
+            `Big Mac price difference: ${promptName} vs USA`;
       }
     }
   }
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: resDates,
         datasets: [
           {
-            label: 'Price of a Big Mac',
+            label: 'Big Mac price difference',
             //'Comparison of the value with USA in percentage',  //+
             // chosenComparisonCurrency,
             data: resValues,
