@@ -1,11 +1,9 @@
 document.addEventListener('DOMContentLoaded', function(event) {
-  const macBaseURL =
-      'https://raw.githubusercontent.com/TheEconomist/big-mac-data/master/output-data/';
-  const macRawCSV = macBaseURL + 'big-mac-raw-index.csv';
-  const macAdjCSV = macBaseURL + 'big-mac-adjusted-index.csv';
-  const cpiBaseURL =
-      'https://raw.githubusercontent.com/lvsz/project-info-viz/node-server/data/rateinf/';
-  const getCpiCSV = (req) => `${cpiBaseURL}CPI_${req}.csv`;
+  const macBaseURL = '/data';
+  const macRawCSV = `${macBaseURL}/big-mac-raw-index.csv`;
+  const macAdjCSV = `${macBaseURL}/big-mac-adjusted-index.csv`;
+  const cpiBaseURL = '/data';
+  const getCpiCSV = (req) => `${cpiBaseURL}/CPI_${req}.csv`;
 
   var chosenCountry = 'Euro area';
   var comparisonCountry = 'USA';
@@ -23,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   var expenseList;
   var resDates = [];
   var resValues = [];
+  var resPrices = [];
 
   var mapChart;
   var currencyValueChart;
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   Promise
       .all([
         d3.csv(macRawCSV),
-        d3.csv("https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/bigmac/raw-index-valued.csv"),
+        d3.csv(macAdjCSV),
         d3.csv(getCpiCSV(chosenCPI)),
         d3.csv(
             'https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/world_bank/WB-DATA.csv'),
@@ -47,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
         // D3
         RAW_INDEX = values[0];
         ADJ_INDEX = values[1];
-        console.log(ADJ_INDEX)
         initializeTheCurrencyComparison();
 
         // cpi
@@ -72,24 +70,33 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function initializeTheCurrencyComparison() {
     const promptName = bigMacMapper(chosenCountry);
-    console.log(promptName)
-    let cmp = promptName == comparisonCountry ? altComparisonCountry :
-                                                comparisonCountry;
-    let thisCountry = ADJ_INDEX.filter((entry) => entry.iso_a3 == promptName)
-    let thisIdx = 0, thatIdx = 0;
+    console.log(promptName);
+    let thisCountry = RAW_INDEX.filter((entry) => entry.iso_a3 == promptName);
+    let thatCountry =
+        RAW_INDEX.filter((entry) => entry.iso_a3 == comparisonCountry);
 
-    resDates = [];
-    resValues = [];
-    if (thisCountry != undefined) {
+    if (thisCountry?.length > 0) {
+      resDates = [];
+      resValues = [];
+      resPrices = [];
+      let thisIdx = 0;
       console.log(thisCountry.length);
       while (thisIdx < thisCountry.length) {
-        const thisYear = Number.parseInt(thisCountry[thisIdx].date)
-        const exchange_rate = Number.parseFloat(thisCountry[thisIdx].over_under_valued)
-        console.log(exchange_rate)
-          resDates.push(thisYear);
-          resValues.push(Math.round(exchange_rate));
-          thisIdx += 1;
-          thatIdx += 1;
+        const thisYear = Number.parseInt(thisCountry[thisIdx].date);
+        // const exchange_rate =
+        // Number.parseFloat(thisCountry[thisIdx].over_under_valued)
+        const exchange_rate = Number.parseFloat(thisCountry[thisIdx].USD * 100);
+        const thisPrice = Number.parseFloat(thisCountry[thisIdx].dollar_price);
+        const thatPrice = Number.parseFloat(thatCountry[thisIdx].dollar_price);
+        console.log(exchange_rate);
+        resDates.push(thisYear);
+        resValues.push(exchange_rate.toFixed(2));
+        resPrices.push([thisPrice.toFixed(2), thatPrice.toFixed(2)]);
+        thisIdx += 1;
+      }
+      if (currencyValueChart) {
+        currencyValueChart.data.datasets[0].label =
+            `Big Mac price difference: ${promptName} vs USA`;
       }
     }
   }
@@ -225,9 +232,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   }
 
   function changeData() {
-    console.log(chosenCountry)
+    console.log(chosenCountry);
     chosenCPI = cpiMap[chosenCountry];
-    console.log(chosenCPI)
+    console.log(chosenCPI);
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(values) {
         // cpi
@@ -245,18 +252,17 @@ document.addEventListener('DOMContentLoaded', function(event) {
       // graph's labels and data
       //  chart.data.labels =labels for the chosenCountry
       //  chart.data.datasets[0]. data =labels for the chosenCountry
-    }else{
-      
-        // cpi
-        CPI = []
-        CPI_labels = [];
-        CPI_values = [];
-        createCorrelationList();
+    } else {
+      // cpi
+      CPI = [];
+      CPI_labels = [];
+      CPI_values = [];
+      createCorrelationList();
 
-        updateCorrelationChart();
-        updateBMorCPIChart();
-        updateExpenseChart();
-        updateCurrencyValueChart();
+      updateCorrelationChart();
+      updateBMorCPIChart();
+      updateExpenseChart();
+      updateCurrencyValueChart();
     }
   }
 
@@ -268,17 +274,17 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
   }
 
-  function changeCurrency(){
-      if(chosenComparisonCurrency == 'dollar_price'){
-        chosenComparisonCurrency = 'local_price'
-      }else{
-        chosenComparisonCurrency = 'dollar_price'
-      }
-      updateCurrencyValueChart();
+  function changeCurrency() {
+    if (chosenComparisonCurrency == 'dollar_price') {
+      chosenComparisonCurrency = 'local_price';
+    } else {
+      chosenComparisonCurrency = 'dollar_price';
+    }
+    updateCurrencyValueChart();
   }
 
-  function initButton(){
-    const ctx = document.getElementById("button");
+  function initButton() {
+    const ctx = document.getElementById('button');
     ctx.onclick = changeCurrency;
   }
 
@@ -290,14 +296,45 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: resDates,
         datasets: [
           {
-            label: 'Comparison of the value with USA in percentage',//+ chosenComparisonCurrency,
+            label: 'Big Mac price difference',
+            //'Comparison of the value with USA in percentage',  //+
+            // chosenComparisonCurrency,
             data: resValues,
             borderWidth: 1,
             backgroundColor: resValues.map((val) => getColour(val)),
           },
         ],
       },
-      options: {indexAxis: 'x', scales: {y: {beginAtZero: true}}},
+      options: {
+        indexAxis: 'x',
+        scales: {y: {beginAtZero: true}},
+        plugins: {
+          tooltip: {
+            callbacks: {
+              afterLabel: function(context) {
+                const prices = resPrices[context.dataIndex];
+                return prices && ` ${comparisonCountry} price: $${prices[1]} `;
+              },
+              label: function(context) {
+                const prices = resPrices[context.dataIndex];
+                const code = bigMacMapper(chosenCountry);
+                return `${code} price: $${prices[0]} `;
+              },
+              footer: function(context) {
+                // console.dir(context);
+                /// let diff = Number.parseFloat(context[0].raw);
+                console.dir(context);
+                const val = context[0].parsed.y;
+                if (typeof val == 'number' && val > 0) {
+                  return `${val}% more expensive`;
+                } else {
+                  return `${(-val).toFixed(2)}% cheaper`;
+                }
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -306,7 +343,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     initializeTheCurrencyComparison();
     currencyValueChart.data.labels = resDates;
     currencyValueChart.data.datasets[0].data = resValues;
-    // currencyValueChart.data.datasets[0].label = 'Comparison of the value with USA',//+ chosenComparisonCurrency;
+    // currencyValueChart.data.datasets[0].label = 'Comparison of the value with
+    // USA',//+ chosenComparisonCurrency;
     currencyValueChart.data.datasets[0].backgroundColor =
         resValues.map((val) => getColour(val));
     currencyValueChart.update();
@@ -428,9 +466,14 @@ document.addEventListener('DOMContentLoaded', function(event) {
         onClick: (e) => {
           const res = mapChart.getElementsAtEventForMode(
               e, 'nearest', {intersect: true}, true);
-          chosenCountry = mapChart.data.labels[res[0]?.index];
-          // console.log(chosenCountry);
-          changeData();
+          const choice = mapChart.data.labels[res[0]?.index];
+          // only make a change when part of Big Mac data set
+          if (bigMacMapper(choice)) {
+            chosenCountry = choice;
+            changeData();
+          } else {
+            console.log('Unsupported area: ', choice);
+          }
         },
       },
     });
