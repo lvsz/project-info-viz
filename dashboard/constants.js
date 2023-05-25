@@ -5,7 +5,6 @@ const iso_a3 = {
   'Azerbaijan': 'AZE',
   'Bahrain': 'BHR',
   'Brazil': 'BRA',
-  'Britain': 'GBR',
   'Canada': 'CAN',
   'Chile': 'CHL',
   'China': 'CHN',
@@ -54,11 +53,16 @@ const iso_a3 = {
   'Ukraine': 'UKR',
   'United Arab Emirates': 'ARE',
   'United Kingdom': 'GBR',
-  'United States': 'USA',
+  'Britain': 'GBR',
   'United States of America': 'USA',
+  'United States': 'USA',
   'Uruguay': 'URY',
   'Venezuela': 'VEN',
   'Vietnam': 'VNM'
+};
+
+const from_iso_a3 = {
+  ...Object.fromEntries(Object.entries(iso_a3).map(([x, y]) => [y, x])),
 };
 
 const euroZone = [
@@ -80,6 +84,7 @@ const cpiMap = {
   'Australia': 'AUS',
   'Canada': 'CAN',
   'Britain': 'GBR',
+  'United Kingdom': 'GBR',
   'Japan': 'JPN',
   'New Zealand': 'NZL',
   'Russia': 'RUS',
