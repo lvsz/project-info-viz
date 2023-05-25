@@ -18,20 +18,20 @@ body {
     overflow: hidden;
     position: relative;
     --swiper-navigation-color: darkslateblue;
-    --swiper-navigation-size: 20px;
+    --swiper-navigation-size: 1rem;
 }
 
 .swiper-slide {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50px;
-    font-size: 20px;
+    height: 3rem;
+    font-size: 1rem;
 }
 
 .map-elem {
         color: darkslateblue;
-        font-size: 22px;
+        font-size: 0.75rem;
         font-weight: bold;
         text-align: center;
         border-style: outset;
@@ -39,6 +39,8 @@ body {
         border-radius: 4px;
         border-color: darkslateblue;
         background-color: unset;
+        margin-left: 4%;
+        margin-right: 4%;
     }
 
 .map-elem:hover {
