@@ -1,0 +1,12 @@
+#!/bin/sh
+
+NODEBASEVERSION="`node --version | grep -Eo 'v[0-9]{1,2}' | tr -d v`"
+
+if [ $NODEBASEVERSION -lt 16 ]
+then
+    echo "node v16 or newer needed" 1>&2
+    echo "try switching to the node-v10 branch" 1>&2
+    exit 1
+else
+    node server.js
+fi
