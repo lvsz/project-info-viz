@@ -11,7 +11,7 @@ const mimeTypes = {
 class Content {
   fileSuffix(file) {
     file = file || this.file;
-    return if (file) file.substring(file.lastIndexOf('.') + 1);
+    return file && file.substring(file.lastIndexOf('.') + 1);
   }
   mapSuffixToMimeType(suffix) {
     suffix = suffix || this.fileSuffix();
