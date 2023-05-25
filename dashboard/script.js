@@ -245,8 +245,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   function changeData() {
     console.log(chosenCountry);
     chosenCPI = cpiMap[chosenCountry];
-    console.log(chosenCPI);
-    document.querySelector('#countrySelector').value = chosenCountry;
+    const iso = iso_a3[chosenCountry];
+    document.querySelector('#countrySelector').value =
+        euroZone.includes(chosenCountry) ? 'Euro area' : from_iso_a3[iso];
     if (chosenCPI !== undefined) {
       Promise.all([d3.csv(getCpiCSV(chosenCPI))]).then(function(data) {
         // cpi
@@ -334,9 +335,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
                 return `${code} price: $${prices[0]} `;
               },
               footer: function(context) {
-                // console.dir(context);
-                /// let diff = Number.parseFloat(context[0].raw);
-                console.dir(context);
                 const val = context[0].parsed.y;
                 if (typeof val == 'number' && val > 0) {
                   return `${val}% more expensive`;
@@ -514,8 +512,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function updateMap() {
     console.log('updating map');
-    console.log(
-        mapChart.data.datasets.filter((e) => e.label == 'Countries')[0].data);
+    // console.log(
+    //     mapChart.data.datasets.filter((e) => e.label ==
+    //     'Countries')[0].data);
 
     mapChart.data.datasets.filter((e) => e.label == 'Countries')[0].data =
         countries.map((d) => ({
@@ -530,7 +529,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
 var oldmap = [];
 document.getElementById('hide-btn').addEventListener('click', function() {
   let worldmap = document.getElementById('map-and-slider');
-  console.dir(worldmap);
   oldmap = [...worldmap.childNodes];
   worldmap.replaceChildren();
   document.getElementById('hide-btn').style.display = 'none';
