@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         labels: countries.map((d) => d.properties.name),
         datasets: [
           {
-            label: 'Countries',
+            label: 'Price of a Big Mac across the world (adjusted to USD)',
             data: countries.map((d) => ({
                                   feature: d,
                                   value: lookupBM(d.properties.name),
@@ -485,6 +485,19 @@ document.addEventListener('DOMContentLoaded', function(event) {
         plugins: {
           legend: {
             display: true,
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const cost = Number.parseFloat(context.formattedValue);
+                const country = context.raw.feature.properties.name;
+                if (!Number.isNaN(cost)) {
+                    return `${country}: $${cost.toFixed(2)}`;
+                } else {
+                    return country;
+                }
+              },
+            },
           },
         },
         scales: {
@@ -512,16 +525,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function updateMap() {
     console.log('updating map');
-    // console.log(
-    //     mapChart.data.datasets.filter((e) => e.label ==
-    //     'Countries')[0].data);
-
-    mapChart.data.datasets.filter((e) => e.label == 'Countries')[0].data =
+    mapChart.data.datasets[0].data =
         countries.map((d) => ({
                         feature: d,
                         value: lookupBM(d.properties.name),
                       }));
-
     mapChart.update();
   }
 });
