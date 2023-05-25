@@ -1,0 +1,11 @@
+#!/bin/sh
+
+NODEBASEVERSION="`node --version | grep -Eo 'v[0-9]{1,2}' | tr -d v`"
+
+if [ $NODEBASEVERSION -lt 10 ]
+then
+    echo "node v10 or newer needed" 1>&2
+    exit 1
+else
+    node server.js
+fi

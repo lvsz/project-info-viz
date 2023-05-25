@@ -1,6 +1,9 @@
 const fs = require('fs');
 const http = require('http');
 
+const siteDir = 'dashboard';
+const dataDir = 'data';
+
 const mimeTypes = {
   html: 'text/html',
   css: 'text/css',
@@ -25,21 +28,22 @@ class Content {
   }
 }
 
-const dashboardHTML = new Content('./dashboard.html');
+const dashboardHTML = new Content(`${siteDir}/dashboard.html`);
 const homePage = dashboardHTML;
-const styleCSS = new Content('./style.css');
+const styleCSS = new Content(`${siteDir}/style.css`);
 
 const jsContent = {
-  '/script.js': new Content('./script.js'),
-  '/constants.js': new Content('./constants.js'),
+  '/script.js': new Content(`${siteDir}/script.js`),
+  '/constants.js': new Content(`${siteDir}/constants.js`),
 };
 
-const dataDir = '../data';
 const macDir = `${dataDir}/bigmac`;
 const cpiDir = `${dataDir}/rateinf`;
+const wbDir  = `${dataDir}/world_bank`;
 
 const csvContent = {
-  '/data/big-mac-raw-index.csv': new Content(`${macDir}/raw-index.csv`),
+  '/data/WB-DATA.csv': new Content(`${wbDir}/WB-DATA.csv`),
+  '/data/WB-METADATA.csv': new Content(`${wbDir}/WB-METADATA.csv`),
   '/data/big-mac-adjusted-index.csv':
       new Content(`${macDir}/adjusted-index.csv`),
   '/data/CPI_ARG.csv': new Content(`${cpiDir}/CPI_ARG.csv`),
@@ -67,7 +71,8 @@ const httpPort = 3000;
 
 const server = http.createServer((req, res) => {
   const query = req.url.split('?');
-  const msg = query.at(1)?.decodeURIComponent(query[1].replace(/\+/g, ' '));
+  const msg = query[1] &&
+        query[1].decodeURIComponent(query[1].replace(/\+/g, ' '));
   const content = queryResponses[query[0]];
   if (content) {
     res.statusCode = 200;
