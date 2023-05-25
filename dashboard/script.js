@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', function(event) {
-  const macBaseURL =
-      'https://raw.githubusercontent.com/TheEconomist/big-mac-data/master/output-data';
+  const macBaseURL = '/data';
+  const wbBaseURL = '/data';
+  const cpiBaseURL = '/data';
   const macRawCSV = `${macBaseURL}/big-mac-raw-index.csv`;
   const macAdjCSV = `${macBaseURL}/big-mac-adjusted-index.csv`;
-  const cpiBaseURL =
-      'https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/rateinf';
+  const wbDataCSV  = `${wbBaseURL}/WB-DATA.csv`;
+  const wbMetadataCSV  = `${wbBaseURL}/WB-METADATA.csv`;
   const getCpiCSV = (req) => `${cpiBaseURL}/CPI_${req}.csv`;
 
   var chosenCountry = 'Euro area';
@@ -38,11 +39,10 @@ document.addEventListener('DOMContentLoaded', function(event) {
         d3.csv(macRawCSV),
         d3.csv(macAdjCSV),
         d3.csv(getCpiCSV(chosenCPI)),
-        d3.csv(
-            'https://raw.githubusercontent.com/lvsz/project-info-viz/main/data/world_bank/WB-DATA.csv'),
-        fetch(
-            'https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')  // placeholder
-            .then((r) => r.json()),
+        d3.csv(wbDataCSV),
+        // placeholder
+        fetch('https://cdn.jsdelivr.net/npm/world-atlas/countries-50m.json')
+          .then((r) => r.json()),
       ])
       .then(function(data) {
         // D3
