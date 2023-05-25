@@ -525,16 +525,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   function updateMap() {
     console.log('updating map');
-    // console.log(
-    //     mapChart.data.datasets.filter((e) => e.label ==
-    //     'Countries')[0].data);
-
-    mapChart.data.datasets.filter((e) => e.label == 'Countries')[0].data =
+    mapChart.data.datasets[0].data =
         countries.map((d) => ({
                         feature: d,
                         value: lookupBM(d.properties.name),
                       }));
-
     mapChart.update();
   }
 });
